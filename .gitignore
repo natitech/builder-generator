@@ -10,3 +10,4 @@ Thumbs.db
 .vagrant
 vendor/
 .idea/
+.phpunit.result.cache
