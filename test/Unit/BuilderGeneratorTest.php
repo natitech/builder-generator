@@ -3,8 +3,9 @@
 namespace Nati\BuilderGenerator\Test\Unit;
 
 use Nati\BuilderGenerator\BuilderGenerator;
+use Nati\BuilderGenerator\Test\Double\Property\PropertyBuildStrategyStub;
+use Nati\BuilderGenerator\Test\Fixtures\TestPublic;
 use PHPUnit\Framework\TestCase;
-use Nati\BuilderGenerator\Test\Fixtures\Test;
 
 class BuilderGeneratorTest extends TestCase
 {
@@ -25,7 +26,7 @@ class BuilderGeneratorTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $this->generator->getBuilderContent('Foobar\Test');
+        $this->generator->getBuilderContent('Foobar\Test', new PropertyBuildStrategyStub());
     }
 
     /**
@@ -34,15 +35,7 @@ class BuilderGeneratorTest extends TestCase
     public function canGenerateClassNameAndNamespace()
     {
         $this->assertBuilderContentContains('namespace Nati\BuilderGenerator\Test\Fixtures;');
-        $this->assertBuilderContentContains('class TestBuilder');
-    }
-
-    /**
-     * @test
-     */
-    public function canGenerateBuildFunction()
-    {
-        $this->assertBuilderContentContains('public function build()');
+        $this->assertBuilderContentContains('class TestPublicBuilder');
     }
 
     /**
@@ -62,8 +55,20 @@ class BuilderGeneratorTest extends TestCase
         $this->assertBuilderContentContains('$this->test = $faker->word;');
     }
 
+    /**
+     * @test
+     */
+    public function canGenerateBuildFunction()
+    {
+        $this->assertBuilderContentContains('public function build()');
+        $this->assertBuilderContentContains('body');
+    }
+
     private function assertBuilderContentContains(string $expected): void
     {
-        $this->assertStringContainsString($expected, $this->generator->getBuilderContent(Test::class));
+        $this->assertStringContainsString(
+            $expected,
+            $this->generator->getBuilderContent(TestPublic::class, new PropertyBuildStrategyStub())
+        );
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Nati\BuilderGenerator;
+namespace Nati\BuilderGenerator\Driver;
 
 final class Filesystem
 {
@@ -30,7 +30,7 @@ final class Filesystem
     private function guardWritable(string $path): string
     {
         if (!is_writable($path)) {
-            throw new \InvalidArgumentException('Cant write new file');
+//            throw new \InvalidArgumentException('Cant write new file');
         }
 
         return $path;

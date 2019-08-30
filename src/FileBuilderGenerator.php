@@ -2,39 +2,36 @@
 
 namespace Nati\BuilderGenerator;
 
-use Nette\PhpGenerator\ClassType;
-use Nette\PhpGenerator\PsrPrinter;
-use SebastianBergmann\CodeCoverage\Node\File;
-
-
+use Nati\BuilderGenerator\Driver\ClassHelper;
+use Nati\BuilderGenerator\Driver\Filesystem;
 
 final class FileBuilderGenerator
 {
     private $fs;
 
-    private $classloader;
+    private $classHelper;
 
     private $generator;
 
-    public function __construct(Filesystem $fs, Classloader $classloader, BuilderGenerator $generator)
+    public function __construct(Filesystem $fs, ClassHelper $classHelper, BuilderGenerator $generator)
     {
         $this->fs          = $fs;
-        $this->classloader = $classloader;
+        $this->classHelper = $classHelper;
         $this->generator   = $generator;
     }
 
     public static function create(): self
     {
-        return new self(new Filesystem(), new Classloader(), new BuilderGenerator());
+        return new self(new Filesystem(), new ClassHelper(), new BuilderGenerator());
     }
 
     public function generateFrom($classFilePath)
     {
-        $fqn = $this->classloader->getFQN($this->fs->read($classFilePath));
+        $fqn = $this->classHelper->getFQN($this->fs->read($classFilePath));
 
-        $this->classloader->loadClass($classFilePath);
+        $this->classHelper->loadClass($classFilePath);
 
-        $builderContent = $this->generator->getBuilderContent($fqn);
+        $builderContent = $this->generator->getBuilderContent($fqn, $this->classHelper->getPropertyBuildStrategy($fqn));
 
         $this->fs->writeNear($classFilePath, 'Builder', $builderContent);
     }

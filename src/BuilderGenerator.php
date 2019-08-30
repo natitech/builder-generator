@@ -3,13 +3,14 @@
 namespace Nati\BuilderGenerator;
 
 use Faker\Generator;
+use Nati\BuilderGenerator\Property\PropertyBuildStrategy;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PsrPrinter;
 
 final class BuilderGenerator
 {
-    public function getBuilderContent($fqn): string
+    public function getBuilderContent($fqn, PropertyBuildStrategy $propertyBuildStrategy): string
     {
         try {
             $builtClass = ClassType::from($fqn);
@@ -17,25 +18,25 @@ final class BuilderGenerator
             throw new \InvalidArgumentException('Class not loaded');
         }
 
-        $builderClass = new ClassType($builtClass->getName() . 'Builder');
+        $builtClassName = $builtClass->getName();
+        $properties     = array_map(
+            function ($property) {
+                /** @var \Nette\PhpGenerator\Property $property */
+                return $property->getName();
+            }, $builtClass->getProperties()
+        );
+
+        $builderClass = new ClassType($builtClassName . 'Builder');
         $builderClass->setFinal();
 
-        if (!$this->isPublicBuildStrategy($builtClass)) {
-            throw new \LogicException('not yet implemented');
-        }
-
         $constructorBody = '';
-        $buildBody       = '$built = new ' . $builtClass->getName() . '();';
-        foreach ($builtClass->getProperties() as $property) {
-            $propertyName = $property->getName();
 
-            $builderClass->addProperty($propertyName)
+        foreach ($properties as $property) {
+            $builderClass->addProperty($property)
                          ->setVisibility(ClassType::VISIBILITY_PRIVATE);
 
-            $constructorBody .= "\n" . sprintf('$this->%s = $faker->word;', $propertyName);
-            $buildBody       .= "\n" . sprintf('$built->%s = $this->%s;', $propertyName, $propertyName);
+            $constructorBody .= "\n" . sprintf('$this->%s = $faker->word;', $property);
         }
-        $buildBody .= "\n\n" . 'return $built;';
 
         $builderClass->addMethod('__construct')
                      ->addBody($constructorBody)
@@ -43,9 +44,10 @@ final class BuilderGenerator
                      ->setTypeHint(Generator::class);
 
         $builderClass->addMethod('build')
-                     ->addBody($buildBody);
+                     ->setReturnType($fqn)
+                     ->addBody($propertyBuildStrategy->getBuildFunctionBody($builtClassName, $properties));
 
-        $namespace = new PhpNamespace($this->getNamespace($fqn, $builtClass->getName()));
+        $namespace = new PhpNamespace($this->getNamespace($fqn, $builtClassName));
         $namespace->addUse(Generator::class);
         $namespace->addUse($fqn);
         $namespace->add($builderClass);
@@ -56,21 +58,5 @@ final class BuilderGenerator
     private function getNamespace(string $fullyQualifiedName, string $relativeName)
     {
         return substr($fullyQualifiedName, 0, strrpos($fullyQualifiedName, $relativeName) - 1);
-    }
-
-    private function isPublicBuildStrategy(ClassType $builtClass)
-    {
-        return $this->hasPublicProperty($builtClass);
-    }
-
-    private function hasPublicProperty(ClassType $builtClass)
-    {
-        foreach ($builtClass->getProperties() as $property) {
-            if ($property->getVisibility() === ClassType::VISIBILITY_PUBLIC) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

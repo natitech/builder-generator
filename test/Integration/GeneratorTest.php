@@ -7,8 +7,6 @@ use PHPUnit\Framework\TestCase;
 
 final class GeneratorTest extends TestCase
 {
-    private const TEST_CLASS_PATH = __DIR__ . '/../Fixtures/Test.php';
-
     /** @var FileBuilderGenerator */
     private $generator;
 
@@ -22,14 +20,42 @@ final class GeneratorTest extends TestCase
     /**
      * @test
      */
-    public function canCreateBuilderFile()
+    public function canCreateBuilderFileUsingPublicStrategy()
     {
-        $this->generator->generateFrom(self::TEST_CLASS_PATH);
+        $this->generateBuilderForFixture('TestPublic');
 
-        $this->assertFileExists(__DIR__ . '/../Fixtures/TestBuilder.php');
-        $builderFileContent = file_get_contents(__DIR__ . '/../Fixtures/TestBuilder.php');
-        $this->assertStringContainsString('class TestBuilder', $builderFileContent);
-        $this->assertStringContainsString('build()', $builderFileContent);
-        $this->assertStringContainsString('private $test;', $builderFileContent);
+        $this->assertBuilderClassExists('TestPublicBuilder');
+    }
+
+    /**
+     * @test
+     */
+    public function canCreateBuilderFileUsingSetterStrategy()
+    {
+        $this->generateBuilderForFixture('TestNonFluentSetter');
+
+        $this->assertBuilderClassExists('TestNonFluentSetterBuilder');
+    }
+
+    /**
+     * @test
+     */
+    public function canCreateBuilderFileUsingConstructorStrategy()
+    {
+        $this->generateBuilderForFixture('TestConstructor');
+
+        $this->assertBuilderClassExists('TestConstructorBuilder');
+    }
+
+    private function generateBuilderForFixture(string $fixtureBuiltClass): void
+    {
+        $this->generator->generateFrom(__DIR__ . '/../Fixtures/' . $fixtureBuiltClass . '.php');
+    }
+
+    private function assertBuilderClassExists(string $expectedBuilderClass): void
+    {
+        $this->assertFileExists(__DIR__ . '/../Fixtures/' . $expectedBuilderClass . '.php');
+        $builderFileContent = file_get_contents(__DIR__ . '/../Fixtures/' . $expectedBuilderClass . '.php');
+        $this->assertStringContainsString('class ' . $expectedBuilderClass . '', $builderFileContent);
     }
 }
