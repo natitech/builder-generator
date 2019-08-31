@@ -3,9 +3,9 @@
 namespace Nati\BuilderGenerator\Test\Unit\Property;
 
 use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
-use PHPUnit\Framework\TestCase;
+use Nati\BuilderGenerator\Test\Unit\UnitTest;
 
-class PublicPropertyBuildStrategyTest extends TestCase
+class PublicPropertyBuildStrategyTest extends UnitTest
 {
     /**
      * @test
@@ -13,11 +13,11 @@ class PublicPropertyBuildStrategyTest extends TestCase
     public function canBuildPublicPropertyBuildBody()
     {
         $this->assertEquals(
-            '$built = new MyClass();
-$built->myProperty = $this->myProperty;
+            '$built = new TestPublic();
+$built->prop1 = $this->prop1;
 
 return $built;',
-            (new PublicPropertyBuildStrategy())->getBuildFunctionBody('MyClass', ['myProperty'])
+            (new PublicPropertyBuildStrategy())->getBuildFunctionBody($this->makeClass([$this->makeProperty()]))
         );
     }
 }

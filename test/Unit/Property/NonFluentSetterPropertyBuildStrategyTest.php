@@ -3,9 +3,9 @@
 namespace Nati\BuilderGenerator\Test\Unit\Property;
 
 use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
-use PHPUnit\Framework\TestCase;
+use Nati\BuilderGenerator\Test\Unit\UnitTest;
 
-class NonFluentSetterPropertyBuildStrategyTest extends TestCase
+class NonFluentSetterPropertyBuildStrategyTest extends UnitTest
 {
     /**
      * @test
@@ -13,11 +13,12 @@ class NonFluentSetterPropertyBuildStrategyTest extends TestCase
     public function canBuildPublicPropertyBuildBody()
     {
         $this->assertEquals(
-            '$built = new MyClass();
-$built->setMyProperty($this->myProperty);
+            '$built = new TestPublic();
+$built->setProp1($this->prop1);
 
 return $built;',
-            (new NonFluentSetterPropertyBuildStrategy())->getBuildFunctionBody('MyClass', ['myProperty'])
+            (new NonFluentSetterPropertyBuildStrategy())
+                ->getBuildFunctionBody($this->makeClass([$this->makeProperty()]))
         );
     }
 }

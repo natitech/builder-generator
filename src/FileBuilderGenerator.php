@@ -2,37 +2,40 @@
 
 namespace Nati\BuilderGenerator;
 
-use Nati\BuilderGenerator\Driver\ClassHelper;
+use Nati\BuilderGenerator\Analyzer\BuildableClassAnalyzer;
 use Nati\BuilderGenerator\Driver\Filesystem;
+use Nati\BuilderGenerator\Property\PropertyBuildStrategyAutoResolver;
 
 final class FileBuilderGenerator
 {
     private $fs;
 
-    private $classHelper;
+    private $classAnalyzer;
 
     private $generator;
 
-    public function __construct(Filesystem $fs, ClassHelper $classHelper, BuilderGenerator $generator)
+    public function __construct(Filesystem $fs, BuildableClassAnalyzer $classAnalyzer, BuilderGenerator $generator)
     {
-        $this->fs          = $fs;
-        $this->classHelper = $classHelper;
-        $this->generator   = $generator;
+        $this->fs            = $fs;
+        $this->classAnalyzer = $classAnalyzer;
+        $this->generator     = $generator;
     }
 
     public static function create(): self
     {
-        return new self(new Filesystem(), new ClassHelper(), new BuilderGenerator());
+        return new self(
+            new Filesystem(),
+            new BuildableClassAnalyzer(),
+            new BuilderGenerator(new PropertyBuildStrategyAutoResolver())
+        );
     }
 
-    public function generateFrom($classFilePath)
+    public function generateFrom($classFilePath): void
     {
-        $fqn = $this->classHelper->getFQN($this->fs->read($classFilePath));
-
-        $this->classHelper->loadClass($classFilePath);
-
-        $builderContent = $this->generator->getBuilderContent($fqn, $this->classHelper->getPropertyBuildStrategy($fqn));
-
-        $this->fs->writeNear($classFilePath, 'Builder', $builderContent);
+        $this->fs->writeNear(
+            $classFilePath,
+            'Builder',
+            $this->generator->getBuilderClassContent($this->classAnalyzer->analyse($this->fs->read($classFilePath)))
+        );
     }
 }

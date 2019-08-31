@@ -1,8 +1,8 @@
 <?php
 
-namespace Nati\BuilderGenerator\Test\Unit\Driver;
+namespace Nati\BuilderGenerator\Test\Unit\Analyzer;
 
-use Nati\BuilderGenerator\Driver\ClassHelper;
+use Nati\BuilderGenerator\Analyzer\ClassHelper;
 use Nati\BuilderGenerator\Property\ConstructorPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 class ClassHelperTest extends TestCase
 {
-    /** @var \Nati\BuilderGenerator\Driver\ClassHelper */
+    /** @var \Nati\BuilderGenerator\Analyzer\ClassHelper */
     private $classHelper;
 
     protected function setUp(): void

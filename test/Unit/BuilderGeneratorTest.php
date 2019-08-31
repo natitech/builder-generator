@@ -3,11 +3,9 @@
 namespace Nati\BuilderGenerator\Test\Unit;
 
 use Nati\BuilderGenerator\BuilderGenerator;
-use Nati\BuilderGenerator\Test\Double\Property\PropertyBuildStrategyStub;
-use Nati\BuilderGenerator\Test\Fixtures\TestPublic;
-use PHPUnit\Framework\TestCase;
+use Nati\BuilderGenerator\Test\Double\Property\PropertyBuildStrategyResolverMock;
 
-class BuilderGeneratorTest extends TestCase
+class BuilderGeneratorTest extends UnitTest
 {
     /** @var \Nati\BuilderGenerator\BuilderGenerator */
     private $generator;
@@ -16,17 +14,7 @@ class BuilderGeneratorTest extends TestCase
     {
         parent::setUp();
 
-        $this->generator = new BuilderGenerator();
-    }
-
-    /**
-     * @test
-     */
-    public function whenClassNotLoadedThenThrowException()
-    {
-        $this->expectException(\InvalidArgumentException::class);
-
-        $this->generator->getBuilderContent('Foobar\Test', new PropertyBuildStrategyStub());
+        $this->generator = new BuilderGenerator(new PropertyBuildStrategyResolverMock());
     }
 
     /**
@@ -34,16 +22,32 @@ class BuilderGeneratorTest extends TestCase
      */
     public function canGenerateClassNameAndNamespace()
     {
-        $this->assertBuilderContentContains('namespace Nati\BuilderGenerator\Test\Fixtures;');
-        $this->assertBuilderContentContains('class TestPublicBuilder');
+        $builderClassContent = $this->getBuilderClassContent();
+
+        $this->assertBuilderClassCodeContains('namespace Nati\BuilderGenerator\Test\Fixtures;', $builderClassContent);
+        $this->assertBuilderClassCodeContains('class TestPublicBuilder', $builderClassContent);
     }
 
     /**
      * @test
      */
-    public function canGenerateProperties()
+    public function canGenerateBuilderForClassWithoutProperties()
     {
-        $this->assertBuilderContentContains('private $test;');
+        $this->assertBuilderClassCodeContains(
+            'public function build(): TestPublic { return new TestPublic(); }',
+            $this->getBuilderClassContent()
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function canAddProperties()
+    {
+        $this->assertBuilderClassCodeContains(
+            'private $prop1;',
+            $this->getBuilderClassContent([$this->makeProperty()])
+        );
     }
 
     /**
@@ -51,8 +55,10 @@ class BuilderGeneratorTest extends TestCase
      */
     public function canGenerateConstructor()
     {
-        $this->assertBuilderContentContains('__construct(Generator $faker)');
-        $this->assertBuilderContentContains('$this->test = $faker->word;');
+        $this->assertBuilderClassCodeContains(
+            '__construct(Generator $faker) { $this->prop1 = $faker->word; }',
+            $this->getBuilderClassContent([$this->makeProperty()])
+        );
     }
 
     /**
@@ -60,15 +66,52 @@ class BuilderGeneratorTest extends TestCase
      */
     public function canGenerateBuildFunction()
     {
-        $this->assertBuilderContentContains('public function build()');
-        $this->assertBuilderContentContains('body');
+        $this->assertBuilderClassCodeContains(
+            'public function build(): TestPublic { return null; }',
+            $this->getBuilderClassContent([$this->makeProperty()])
+        );
     }
 
-    private function assertBuilderContentContains(string $expected): void
+    /**
+     * @test
+     */
+    public function canUseMostUsedStrategyOnRelevantProperties()
+    {
+        $builderClassContent = $this->getBuilderClassContent(
+            [
+                $this->makeProperty('prop1', $this->mixedStrategies()),
+                $this->makeProperty('prop2', $this->commentStrategies()),
+                $this->makeProperty('prop3', $this->commentStrategies()),
+                $this->makeProperty('prop4', $this->nullStrategies())
+            ]
+        );
+
+        $this->assertBuilderClassCodeContains(
+            'public function __construct(Generator $faker) { $this->prop1 = $faker->word; $this->prop2 = $faker->word; $this->prop3 = $faker->word; }',
+            $builderClassContent
+        );
+        $this->assertBuilderClassCodeContains(
+            'public function build(): TestPublic { //CommentPropertyBuildStrategy with 3 properties }',
+            $builderClassContent
+        );
+    }
+
+    private function assertBuilderClassCodeContains(string $expected, $builderClassContent)
     {
         $this->assertStringContainsString(
-            $expected,
-            $this->generator->getBuilderContent(TestPublic::class, new PropertyBuildStrategyStub())
+            $this->spaceless($expected),
+            $this->spaceless($builderClassContent),
+            'Code equivalent to "' . $expected . '" not found in "' . $builderClassContent . '"'
         );
+    }
+
+    private function getBuilderClassContent(array $properties = []): string
+    {
+        return $this->generator->getBuilderClassContent($this->makeClass($properties));
+    }
+
+    private function spaceless(string $expected)
+    {
+        return str_replace([' ', "\n"], '', $expected);
     }
 }

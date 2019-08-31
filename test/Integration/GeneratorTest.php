@@ -10,6 +10,13 @@ final class GeneratorTest extends TestCase
     /** @var FileBuilderGenerator */
     private $generator;
 
+    public static function setUpBeforeClass(): void
+    {
+        parent::setUpBeforeClass();
+
+        self::cleanFiles();
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -47,15 +54,48 @@ final class GeneratorTest extends TestCase
         $this->assertBuilderClassExists('TestConstructorBuilder');
     }
 
+    /**
+     * @test
+     */
+    public function canCreateBuilderFileUsingConstructorStrategyAndUnusableConstructor()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->generateBuilderForFixture('TestUnbuildableConstructor');
+    }
+
     private function generateBuilderForFixture(string $fixtureBuiltClass): void
     {
-        $this->generator->generateFrom(__DIR__ . '/../Fixtures/' . $fixtureBuiltClass . '.php');
+        $this->generator->generateFrom(self::getFixturesFilePath($fixtureBuiltClass));
     }
 
     private function assertBuilderClassExists(string $expectedBuilderClass): void
     {
-        $this->assertFileExists(__DIR__ . '/../Fixtures/' . $expectedBuilderClass . '.php');
-        $builderFileContent = file_get_contents(__DIR__ . '/../Fixtures/' . $expectedBuilderClass . '.php');
-        $this->assertStringContainsString('class ' . $expectedBuilderClass . '', $builderFileContent);
+        $filePath = self::getFixturesFilePath($expectedBuilderClass);
+
+        $this->assertFileExists($filePath);
+        $this->assertStringContainsString('class ' . $expectedBuilderClass . '', file_get_contents($filePath));
+    }
+
+    private static function cleanFiles()
+    {
+        foreach (
+            [
+                'TestConstructorBuilder',
+                'TestPublicBuilder',
+                'TestNonFluentSetterBuilder',
+                'TestUnbuildableConstructorBuilder'
+            ] as $potentialFile
+        ) {
+            $filepath = self::getFixturesFilePath($potentialFile);
+            if (file_exists($filepath)) {
+                unlink($filepath);
+            }
+        }
+    }
+
+    private static function getFixturesFilePath(string $filename): string
+    {
+        return __DIR__ . '/../Fixtures/' . $filename . '.php';
     }
 }

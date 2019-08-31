@@ -1,6 +1,6 @@
 <?php
 
-namespace Nati\BuilderGenerator\Driver;
+namespace Nati\BuilderGenerator\Analyzer;
 
 use Nati\BuilderGenerator\Property\ConstructorPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
@@ -9,7 +9,6 @@ use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
 use Nette\PhpGenerator\ClassType;
 
 //TODO should use php parser instead
-//TODO what about mixed strategies ?
 
 final class ClassHelper
 {

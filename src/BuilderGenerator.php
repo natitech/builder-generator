@@ -3,39 +3,42 @@
 namespace Nati\BuilderGenerator;
 
 use Faker\Generator;
-use Nati\BuilderGenerator\Property\PropertyBuildStrategy;
+use Nati\BuilderGenerator\Analyzer\BuildableClass;
+use Nati\BuilderGenerator\Property\PropertyBuildStrategyResolver;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PsrPrinter;
 
 final class BuilderGenerator
 {
-    public function getBuilderContent($fqn, PropertyBuildStrategy $propertyBuildStrategy): string
+    private $strategyResolver;
+
+    public function __construct(PropertyBuildStrategyResolver $strategyResolver)
     {
-        try {
-            $builtClass = ClassType::from($fqn);
-        } catch (\ReflectionException $e) {
-            throw new \InvalidArgumentException('Class not loaded');
-        }
+        $this->strategyResolver = $strategyResolver;
+    }
 
-        $builtClassName = $builtClass->getName();
-        $properties     = array_map(
-            function ($property) {
-                /** @var \Nette\PhpGenerator\Property $property */
-                return $property->getName();
-            }, $builtClass->getProperties()
-        );
-
-        $builderClass = new ClassType($builtClassName . 'Builder');
+    public function getBuilderClassContent(BuildableClass $buildableClass): string
+    {
+        $builderClass = new ClassType($buildableClass->name . 'Builder');
         $builderClass->setFinal();
 
-        $constructorBody = '';
+        $mostUsedStrategy = $this->getMostUsedStrategyClassAmong($buildableClass->properties);
 
-        foreach ($properties as $property) {
-            $builderClass->addProperty($property)
+        $builtClass             = clone $buildableClass;
+        $builtClass->properties = $this->getPropertiesThatSupport($buildableClass->properties, $mostUsedStrategy);
+
+        $constructorBody = '';
+        foreach ($builtClass->properties as $property) {
+            $builderClass->addProperty($property->name)
+                         ->addComment($property->inferredType ? '@var ' . $property->inferredType : null)
                          ->setVisibility(ClassType::VISIBILITY_PRIVATE);
 
-            $constructorBody .= "\n" . sprintf('$this->%s = $faker->word;', $property);
+            $constructorBody .= "\n" . sprintf(
+                    '$this->%s = $faker->%s;',
+                    $property->name,
+                    $property->inferredFake ?: 'word'
+                );
         }
 
         $builderClass->addMethod('__construct')
@@ -43,11 +46,13 @@ final class BuilderGenerator
                      ->addParameter('faker')
                      ->setTypeHint(Generator::class);
 
+        $fqn = $builtClass->namespace . '\\' . $builtClass->name;
+
         $builderClass->addMethod('build')
                      ->setReturnType($fqn)
-                     ->addBody($propertyBuildStrategy->getBuildFunctionBody($builtClassName, $properties));
+                     ->addBody($this->getBuildFunctionBody($builtClass, $mostUsedStrategy));
 
-        $namespace = new PhpNamespace($this->getNamespace($fqn, $builtClassName));
+        $namespace = new PhpNamespace($builtClass->namespace);
         $namespace->addUse(Generator::class);
         $namespace->addUse($fqn);
         $namespace->add($builderClass);
@@ -55,8 +60,45 @@ final class BuilderGenerator
         return '<?php' . "\n" . "\n" . (new PsrPrinter())->printNamespace($namespace);
     }
 
-    private function getNamespace(string $fullyQualifiedName, string $relativeName)
+    private function getBuildFunctionBody(BuildableClass $builtClass, $strategy): string
     {
-        return substr($fullyQualifiedName, 0, strrpos($fullyQualifiedName, $relativeName) - 1);
+        if (!$builtClass->properties) {
+            return 'return new ' . $builtClass->name . '();';
+        }
+
+        return $this->strategyResolver->resolveStrategy($strategy)
+                                      ->getBuildFunctionBody($builtClass);
+    }
+
+    private function getMostUsedStrategyClassAmong(array $properties): ?string
+    {
+        if (!$properties) {
+            return null;
+        }
+
+        $counts = [];
+        foreach ($properties as $property) {
+            /** @var \Nati\BuilderGenerator\Analyzer\BuildableProperty $property */
+            foreach ($property->writeStrategies as $writeStrategy) {
+                $counts[$writeStrategy] = isset($counts[$writeStrategy]) ? $counts[$writeStrategy] + 1 : 1;
+            }
+        }
+
+        return array_search(max($counts), $counts, true);
+    }
+
+    private function getPropertiesThatSupport(array $properties, ?string $mostUsedStrategy): array
+    {
+        if (!$mostUsedStrategy) {
+            return [];
+        }
+
+        return array_filter(
+            $properties,
+            static function ($property) use ($mostUsedStrategy) {
+                /** @var \Nati\BuilderGenerator\Analyzer\BuildableProperty $property */
+                return in_array($mostUsedStrategy, $property->writeStrategies, true);
+            }
+        );
     }
 }

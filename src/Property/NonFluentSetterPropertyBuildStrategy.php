@@ -2,14 +2,16 @@
 
 namespace Nati\BuilderGenerator\Property;
 
+use Nati\BuilderGenerator\Analyzer\BuildableClass;
+
 final class NonFluentSetterPropertyBuildStrategy implements PropertyBuildStrategy
 {
-    public function getBuildFunctionBody(string $builtClassName, array $properties): string
+    public function getBuildFunctionBody(BuildableClass $class): string
     {
-        $buildBody = '$built = new ' . $builtClassName . '();';
+        $buildBody = '$built = new ' . $class->name . '();';
 
-        foreach ($properties as $property) {
-            $buildBody .= "\n" . sprintf('$built->set%s($this->%s);', ucfirst($property), $property);
+        foreach ($class->properties as $property) {
+            $buildBody .= "\n" . sprintf('$built->set%s($this->%s);', ucfirst($property->name), $property->name);
         }
 
         $buildBody .= "\n\n" . 'return $built;';
