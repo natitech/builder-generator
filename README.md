@@ -1,6 +1,7 @@
 ## Builder generator
 
 PHP standalone library to generate a [builder pattern](https://en.wikipedia.org/wiki/Builder_pattern) from a class.
+[![Build Status](https://travis-ci.org/natitech/builder-generator.svg?branch=master)](https://travis-ci.org/natitech/builder-generator)
 
 #### Installation
 
