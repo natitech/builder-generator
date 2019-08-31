@@ -44,7 +44,7 @@ final class ConstructorPropertyBuildStrategy implements PropertyBuildStrategy
     private function guardUnusableConstructor(BuildableClass $class)
     {
         if (count($class->properties) !== $class->nbConstructorArgs) {
-            throw new \InvalidArgumentException();
+            throw new \InvalidArgumentException('Class has constructor dependencies that can not be resolved');
         }
     }
 }

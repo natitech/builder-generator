@@ -15,3 +15,5 @@ php bin/generate /path/to/entity
 ```
 
 The generator can support many write stategies for property (public, setter, constructor) but you have to be consistent across the built class. The most used strategy inside the built file will be used for the entire builder class.
+
+You can use this tool as an external tool in your IDE. For PHPStorm user, see https://www.jetbrains.com/help/phpstorm/configuring-third-party-tools.html.

@@ -24,7 +24,7 @@ final class NonFluentSetterPropertyBuildStrategy implements PropertyBuildStrateg
     private function guardUnusableConstructor(BuildableClass $class)
     {
         if ($class->nbConstructorArgs > 0) {
-            throw new \InvalidArgumentException('Class constructor can not be used');
+            throw new \InvalidArgumentException('Class seems to be buildable by setters but has constructor dependencies');
         }
     }
 }
