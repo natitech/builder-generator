@@ -11,8 +11,5 @@ filter:
         - 'bin/*'
         - 'test/*'
 
-checks:
-    php: false
-
 coding_style:
     php: false
