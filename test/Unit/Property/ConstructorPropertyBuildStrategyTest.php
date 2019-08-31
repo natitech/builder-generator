@@ -48,5 +48,4 @@ class ConstructorPropertyBuildStrategyTest extends UnitTest
 
         $this->strategy->getBuildFunctionBody($class);
     }
-
 }

@@ -24,6 +24,28 @@ final class GeneratorTest extends TestCase
         $this->generator = FileBuilderGenerator::create();
     }
 
+    private static function cleanFiles()
+    {
+        foreach (
+            [
+                'TestConstructorBuilder',
+                'TestPublicBuilder',
+                'TestNonFluentSetterBuilder',
+                'TestUnbuildableConstructorBuilder'
+            ] as $potentialFile
+        ) {
+            $filepath = self::getFixturesFilePath($potentialFile);
+            if (file_exists($filepath)) {
+                unlink($filepath);
+            }
+        }
+    }
+
+    private static function getFixturesFilePath(string $filename): string
+    {
+        return __DIR__ . '/../Fixtures/' . $filename . '.php';
+    }
+
     /**
      * @test
      */
@@ -75,27 +97,5 @@ final class GeneratorTest extends TestCase
 
         $this->assertFileExists($filePath);
         $this->assertStringContainsString('class ' . $expectedBuilderClass . '', file_get_contents($filePath));
-    }
-
-    private static function cleanFiles()
-    {
-        foreach (
-            [
-                'TestConstructorBuilder',
-                'TestPublicBuilder',
-                'TestNonFluentSetterBuilder',
-                'TestUnbuildableConstructorBuilder'
-            ] as $potentialFile
-        ) {
-            $filepath = self::getFixturesFilePath($potentialFile);
-            if (file_exists($filepath)) {
-                unlink($filepath);
-            }
-        }
-    }
-
-    private static function getFixturesFilePath(string $filename): string
-    {
-        return __DIR__ . '/../Fixtures/' . $filename . '.php';
     }
 }

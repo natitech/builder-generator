@@ -6,9 +6,9 @@ use Nati\BuilderGenerator\Analyzer\BuildableClassAnalyzer;
 use Nati\BuilderGenerator\Property\ConstructorPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
-use PHPUnit\Framework\TestCase;
+use Nati\BuilderGenerator\Test\Unit\UnitTest;
 
-class BuildableClassAnalyzerTest extends TestCase
+class BuildableClassAnalyzerTest extends UnitTest
 {
     /** @var BuildableClassAnalyzer */
     private $analyzer;

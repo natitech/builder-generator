@@ -17,6 +17,21 @@ use PhpParser\ParserFactory;
 
 final class BuildableClassAnalyzer
 {
+    private $nodeFinder;
+
+    private $ast;
+
+    private $classNode;
+
+    private $classMethodNodes;
+
+    private $analysis;
+
+    public function __construct()
+    {
+        $this->nodeFinder = new NodeFinder();
+    }
+
     /**
      * @param string $classContent
      * @return \Nati\BuilderGenerator\Analyzer\BuildableClass
@@ -24,86 +39,173 @@ final class BuildableClassAnalyzer
      */
     public function analyse(string $classContent): BuildableClass
     {
-        $parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+        $this->init($classContent);
+        $this->addNamespace();
+        $this->addClassName();
+        $this->addProperties();
+        $this->addNbConstructorArgs();
 
+        return $this->analysis;
+    }
+
+    private function init(string $classContent): void
+    {
+        $this->ast              = $this->guardAst($classContent);
+        $this->classNode        = $this->guardClassNode();
+        $this->classMethodNodes = $this->nodeFinder->findInstanceOf($this->classNode, ClassMethod::class);
+        $this->analysis         = new BuildableClass();
+    }
+
+    private function addNamespace(): void
+    {
+        $this->analysis->namespace = $this->getNamespace();
+    }
+
+    private function addClassName(): void
+    {
+        $this->analysis->name = (string)$this->classNode->name;
+    }
+
+    private function addProperties(): void
+    {
+        $propertyNodes = $this->nodeFinder->findInstanceOf($this->classNode, Property::class);
+
+        foreach ($propertyNodes as $propertyNode) {
+            if ($property = $this->makeBuildableProperty($propertyNode)) {
+                $this->analysis->properties[] = $property;
+            }
+        }
+    }
+
+    private function addNbConstructorArgs(): void
+    {
+        $this->analysis->nbConstructorArgs = count($this->getConstructorArgs());
+    }
+
+    private function guardAst(string $classContent)
+    {
         try {
-            $ast = $parser->parse($classContent, new Throwing());
+            return (new ParserFactory)->create(ParserFactory::PREFER_PHP7)->parse($classContent, new Throwing());
         } catch (Error $e) {
             throw new \InvalidArgumentException('Not php code', null, $e);
         }
+    }
 
-        $nodeFinder = new NodeFinder();
-
-        $classNode = $nodeFinder->findFirstInstanceOf($ast, Class_::class);
-
-        if (!$classNode) {
+    private function guardClassNode()
+    {
+        if (!($classNode = $this->nodeFinder->findFirstInstanceOf($this->ast, Class_::class))) {
             throw new \InvalidArgumentException('No class found');
         }
 
-        $nsNode = $nodeFinder->findFirstInstanceOf($ast, Namespace_::class);
+        return $classNode;
+    }
 
-        $class       = new BuildableClass();
-        $class->name = (string)$classNode->name;
-
-        if ($nsNode) {
-            $class->namespace = (string)$nsNode->name;
+    private function getNamespace()
+    {
+        if ($nsNode = $this->nodeFinder->findFirstInstanceOf($this->ast, Namespace_::class)) {
+            return (string)$nsNode->name;
         }
 
-        $propertyNodes = $nodeFinder->findInstanceOf($classNode, Property::class);
+        return null;
+    }
 
-        $constructorArgs = [];
+    private function makeBuildableProperty(Property $propertyNode): ?BuildableProperty
+    {
+        if (!($propertyName = (string)($propertyNode->props[0]->name ?? null))) {
+            return null;
+        }
 
-        foreach ($propertyNodes as $propertyNode) {
-            if ($propertyName = (string)($propertyNode->props[0]->name ?? null)) {
-                $property = new BuildableProperty();
+        $constructorInitializationPosition = $this->getConstructorInitializationPosition(
+            $propertyName,
+            $this->findMethod('__construct')
+        );
 
-                $property->name            = $propertyName;
-                $property->inferredType    = 'string';
-                $property->inferredFake    = 'word';
-                $property->writeStrategies = [];
+        $property                   = new BuildableProperty();
+        $property->name             = $propertyName;
+        $property->inferredType     = 'string';
+        $property->inferredFake     = 'word';
+        $property->constructorOrder = $constructorInitializationPosition;
+        $property->writeStrategies  = $this->getWriteStrategies($propertyNode, $constructorInitializationPosition);
 
-                if ($propertyNode->isPublic()) {
-                    $property->writeStrategies[] = PublicPropertyBuildStrategy::class;
+        return $property;
+    }
+
+    private function getConstructorInitializationPosition(string $propertyName, $constructorNode): ?int
+    {
+        if ($constructorNode
+            && ($constructorArgs = $this->getConstructorArgs())
+            && ($assignments = $this->nodeFinder->findInstanceOf($constructorNode, Assign::class))) {
+            foreach ($assignments as $assignment) {
+                $assigned = ((string)($assignment->var->var->name ?? null)) . ((string)($assignment->var->name ?? null));
+                $to       = (string)($assignment->expr->name ?? null);
+
+                if (($assigned === 'this' . $propertyName) && in_array($to, $constructorArgs, true)) {
+                    return array_search($to, $constructorArgs, true);
                 }
-
-                if ($methods = $nodeFinder->findInstanceOf($classNode, ClassMethod::class)) {
-                    foreach ($methods as $methodNode) {
-                        $methodName = (string)$methodNode->name;
-                        if ($methodName === 'set' . ucfirst($propertyName)) {
-                            $property->writeStrategies[] = NonFluentSetterPropertyBuildStrategy::class;
-                        }
-
-                        if ($methodName === '__construct') {
-                            $constructorArgs = [];
-                            foreach ($methodNode->params as $param) {
-                                $constructorArgs[] = (string)$param->var->name;
-                            }
-                            if ($constructorArgs) {
-                                $assignments = $nodeFinder->findInstanceOf($methodNode, Assign::class);
-                                foreach ($assignments as $assignment) {
-                                    $assigned = ((string)($assignment->var->var->name ?? null)) . ((string)($assignment->var->name ?? null));
-                                    $to       = (string)($assignment->expr->name ?? null);
-
-                                    if ($assigned === 'this' . $propertyName) {
-                                        $argsPosition = array_search($to, $constructorArgs, true);
-
-                                        if ($argsPosition !== false) {
-                                            $property->writeStrategies[] = ConstructorPropertyBuildStrategy::class;
-                                            $property->constructorOrder  = $argsPosition;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                $class->properties[] = $property;
             }
         }
 
-        $class->nbConstructorArgs = count($constructorArgs);
+        return null;
+    }
 
-        return $class;
+    private function getWriteStrategies(Property $propertyNode, ?int $constructorInitializationPosition): array
+    {
+        $propertyName = (string)($propertyNode->props[0]->name ?? null);
+
+        $writeStrategies = [];
+
+        if ($propertyNode->isPublic()) {
+            $writeStrategies[] = PublicPropertyBuildStrategy::class;
+        }
+
+        if ($this->hasSetterForProperty($propertyName)) {
+            $writeStrategies[] = NonFluentSetterPropertyBuildStrategy::class;
+        }
+
+        if ($constructorInitializationPosition !== null) {
+            $writeStrategies[] = ConstructorPropertyBuildStrategy::class;
+        }
+
+        return $writeStrategies;
+    }
+
+    private function hasSetterForProperty(string $propertyName): bool
+    {
+        return (boolean)$this->findMethod('set' . ucfirst($propertyName));
+    }
+
+    private function findMethod(string $functionName)
+    {
+        if (!$this->classMethodNodes) {
+            return null;
+        }
+
+        foreach ($this->classMethodNodes as $methodNode) {
+            /** @var ClassMethod $methodNode */
+            if (((string)$methodNode->name) === $functionName && $methodNode->isPublic()) {
+                return $methodNode;
+            }
+        }
+
+        return null;
+    }
+
+    private function getConstructorArgs()
+    {
+        return $this->getMethodArgNames($this->findMethod('__construct'));
+    }
+
+    private function getMethodArgNames($methodNode): array
+    {
+        if (!$methodNode) {
+            return [];
+        }
+
+        $constructorArgs = [];
+        foreach ($methodNode->params as $param) {
+            $constructorArgs[] = (string)$param->var->name;
+        }
+
+        return $constructorArgs;
     }
 }

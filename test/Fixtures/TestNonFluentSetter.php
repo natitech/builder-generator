@@ -4,11 +4,11 @@ namespace Nati\BuilderGenerator\Test\Fixtures;
 
 final class TestNonFluentSetter
 {
+    public  $test3;
+
     private $test;
 
     private $test2;
-
-    public $test3;
 
     public function __construct()
     {

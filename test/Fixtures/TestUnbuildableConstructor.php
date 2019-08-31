@@ -4,11 +4,11 @@ namespace Nati\BuilderGenerator\Test\Fixtures;
 
 final class TestUnbuildableConstructor
 {
+    public  $test3;
+
     private $test;
 
     private $test2;
-
-    public  $test3;
 
     private $test4;
 

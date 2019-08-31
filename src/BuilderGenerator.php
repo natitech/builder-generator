@@ -13,6 +13,12 @@ final class BuilderGenerator
 {
     private $strategyResolver;
 
+    /** @var BuildableClass */
+    private $builtClass;
+
+    /** @var ClassType */
+    private $builderClass;
+
     public function __construct(PropertyBuildStrategyResolver $strategyResolver)
     {
         $this->strategyResolver = $strategyResolver;
@@ -20,20 +26,38 @@ final class BuilderGenerator
 
     public function getBuilderClassContent(BuildableClass $buildableClass): string
     {
-        $builderClass = new ClassType($buildableClass->name . 'Builder');
-        $builderClass->setFinal();
-
         $mostUsedStrategy = $this->getMostUsedStrategyClassAmong($buildableClass->properties);
 
-        $builtClass             = clone $buildableClass;
-        $builtClass->properties = $this->getPropertiesThatSupport($buildableClass->properties, $mostUsedStrategy);
+        $this->init($buildableClass, $mostUsedStrategy);
+        $this->addProperties();
+        $this->addConstructor();
+        $this->addBuildMethod($mostUsedStrategy);
 
+        return $this->dump($this->addNamespace());
+    }
+
+    private function init(BuildableClass $buildableClass, ?string $mostUsedStrategy): void
+    {
+        $this->builtClass             = clone $buildableClass;
+        $this->builtClass->properties = $this->getPropertiesThatSupport($buildableClass->properties, $mostUsedStrategy);
+
+        $this->builderClass = new ClassType($this->builtClass->name . 'Builder');
+        $this->builderClass->setFinal();
+    }
+
+    private function addProperties(): void
+    {
+        foreach ($this->builtClass->properties as $property) {
+            $this->builderClass->addProperty($property->name)
+                               ->addComment($property->inferredType ? '@var ' . $property->inferredType : null)
+                               ->setVisibility(ClassType::VISIBILITY_PRIVATE);
+        }
+    }
+
+    private function addConstructor(): void
+    {
         $constructorBody = '';
-        foreach ($builtClass->properties as $property) {
-            $builderClass->addProperty($property->name)
-                         ->addComment($property->inferredType ? '@var ' . $property->inferredType : null)
-                         ->setVisibility(ClassType::VISIBILITY_PRIVATE);
-
+        foreach ($this->builtClass->properties as $property) {
             $constructorBody .= "\n" . sprintf(
                     '$this->%s = $faker->%s;',
                     $property->name,
@@ -41,23 +65,32 @@ final class BuilderGenerator
                 );
         }
 
-        $builderClass->addMethod('__construct')
-                     ->addBody($constructorBody)
-                     ->addParameter('faker')
-                     ->setTypeHint(Generator::class);
+        $this->builderClass->addMethod('__construct')
+                           ->addBody($constructorBody)
+                           ->addParameter('faker')
+                           ->setTypeHint(Generator::class);
+    }
 
-        $fqn = $builtClass->namespace . '\\' . $builtClass->name;
+    private function addBuildMethod(?string $mostUsedStrategy): void
+    {
+        $this->builderClass->addMethod('build')
+                           ->setReturnType($this->getBuiltClassFQN())
+                           ->addBody($this->getBuildFunctionBody($this->builtClass, $mostUsedStrategy));
+    }
 
-        $builderClass->addMethod('build')
-                     ->setReturnType($fqn)
-                     ->addBody($this->getBuildFunctionBody($builtClass, $mostUsedStrategy));
-
-        $namespace = new PhpNamespace($builtClass->namespace);
+    private function addNamespace(): PhpNamespace
+    {
+        $namespace = new PhpNamespace($this->builtClass->namespace);
         $namespace->addUse(Generator::class);
-        $namespace->addUse($fqn);
-        $namespace->add($builderClass);
+        $namespace->addUse($this->getBuiltClassFQN());
+        $namespace->add($this->builderClass);
 
-        return '<?php' . "\n" . "\n" . (new PsrPrinter())->printNamespace($namespace);
+        return $namespace;
+    }
+
+    private function dump(PhpNamespace $namespace): string
+    {
+        return '<?php' . "\n\n" . (new PsrPrinter())->printNamespace($namespace);
     }
 
     private function getBuildFunctionBody(BuildableClass $builtClass, $strategy): string
@@ -100,5 +133,10 @@ final class BuilderGenerator
                 return in_array($mostUsedStrategy, $property->writeStrategies, true);
             }
         );
+    }
+
+    private function getBuiltClassFQN(): string
+    {
+        return $this->builtClass->namespace . '\\' . $this->builtClass->name;
     }
 }

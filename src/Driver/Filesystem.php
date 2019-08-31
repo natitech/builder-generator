@@ -13,9 +13,7 @@ final class Filesystem
 
     public function writeNear($filePath, $suffix, $content): void
     {
-        $newFilePath = $this->guardWritable($this->makeNewFilePath($this->guardExists($filePath), $suffix));
-
-        file_put_contents($newFilePath, $content);
+        file_put_contents($this->makeNewFilePath($this->guardExists($filePath), $suffix), $content);
     }
 
     private function guardExists($filePath): \SplFileInfo
@@ -27,17 +25,10 @@ final class Filesystem
         return new \SplFileInfo($filePath);
     }
 
-    private function guardWritable(string $path): string
-    {
-        if (!is_writable($path)) {
-//            throw new \InvalidArgumentException('Cant write new file');
-        }
-
-        return $path;
-    }
-
     private function makeNewFilePath(\SplFileInfo $currentFilePath, $suffix): string
     {
-        return $currentFilePath->getPath() . '/' . $currentFilePath->getBasename('.php') . $suffix . '.php';
+        $ext = $currentFilePath->getExtension();
+
+        return $currentFilePath->getPath() . '/' . $currentFilePath->getBasename('.' . $ext) . $suffix . '.' . $ext;
     }
 }
