@@ -10,6 +10,3 @@ filter:
     excluded_paths:
         - 'bin/*'
         - 'test/*'
-
-checks:
-    php: false
