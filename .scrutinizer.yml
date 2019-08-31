@@ -1,0 +1,15 @@
+build:
+    environment:
+        php: '7.3'
+
+before_commands:
+    - "composer install"
+
+tools:
+    external_code_coverage:
+        enabled: true
+        timeout: 300
+
+    php_analyzer:
+        enabled: false
+
