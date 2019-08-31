@@ -1,15 +1,18 @@
 build:
-    environment:
-        php: '7.3'
+    nodes:
+        analysis: false
+        tests:
+            environment:
+                php:
+                    version: 7.3
 
-before_commands:
-    - "composer install"
+filter:
+    excluded_paths:
+        - 'bin/*'
+        - 'test/*'
 
-tools:
-    external_code_coverage:
-        enabled: true
-        timeout: 300
+checks:
+    php: false
 
-    php_analyzer:
-        enabled: false
-
+coding_style:
+    php: false
