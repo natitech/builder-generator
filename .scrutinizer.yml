@@ -1,12 +1,14 @@
 build:
-    nodes:
-        analysis: false
-        tests:
-            environment:
-                php:
-                    version: 7.3
+    environment:
+        php:
+            version: 7.3
 
-filter:
-    excluded_paths:
-        - 'bin/*'
-        - 'test/*'
+tools:
+    php_code_coverage:
+        enabled: true
+        filter:
+            excluded_paths:
+                - 'bin/*'
+                - 'test/*'
+    php_analyzer:
+        enabled: false
