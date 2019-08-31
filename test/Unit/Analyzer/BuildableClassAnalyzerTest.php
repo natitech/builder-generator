@@ -4,6 +4,7 @@ namespace Nati\BuilderGenerator\Test\Unit\Analyzer;
 
 use Nati\BuilderGenerator\Analyzer\BuildableClassAnalyzer;
 use Nati\BuilderGenerator\Property\ConstructorPropertyBuildStrategy;
+use Nati\BuilderGenerator\Property\FluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
 use Nati\BuilderGenerator\Test\Unit\UnitTest;
@@ -90,6 +91,22 @@ class BuildableClassAnalyzerTest extends UnitTest
         $this->assertCount(1, $buildableClass->properties);
         $this->assertContains(
             NonFluentSetterPropertyBuildStrategy::class,
+            $buildableClass->properties[0]->writeStrategies
+        );
+    }
+
+    /**
+     * @test
+     */
+    public function whenPrivatePropertyWithFluentSetterThenWriteStrategyContainsFluentSetter()
+    {
+        $buildableClass = $this->analyzer->analyse(
+            '<?php namespace MyNs\Test; class MyClass{private $prop1; public function setProp1($prop1) { $this->prop1 = $prop1; return $this; }}'
+        );
+
+        $this->assertCount(1, $buildableClass->properties);
+        $this->assertContains(
+            FluentSetterPropertyBuildStrategy::class,
             $buildableClass->properties[0]->writeStrategies
         );
     }

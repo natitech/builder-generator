@@ -47,33 +47,15 @@ final class GeneratorTest extends TestCase
     }
 
     /**
+     * @param string $testedClass
      * @test
+     * @dataProvider validClasses
      */
-    public function canCreateBuilderFileUsingPublicStrategy()
+    public function canCreateBuilderFile($testedClass)
     {
-        $this->generateBuilderForFixture('TestPublic');
+        $this->generateBuilderForFixture($testedClass);
 
-        $this->assertBuilderClassExists('TestPublicBuilder');
-    }
-
-    /**
-     * @test
-     */
-    public function canCreateBuilderFileUsingSetterStrategy()
-    {
-        $this->generateBuilderForFixture('TestNonFluentSetter');
-
-        $this->assertBuilderClassExists('TestNonFluentSetterBuilder');
-    }
-
-    /**
-     * @test
-     */
-    public function canCreateBuilderFileUsingConstructorStrategy()
-    {
-        $this->generateBuilderForFixture('TestConstructor');
-
-        $this->assertBuilderClassExists('TestConstructorBuilder');
+        $this->assertBuilderClassExists($testedClass . 'Builder');
     }
 
     /**
@@ -84,6 +66,11 @@ final class GeneratorTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
 
         $this->generateBuilderForFixture('TestUnbuildableConstructor');
+    }
+
+    public function validClasses()
+    {
+        return [['TestPublic'], ['TestNonFluentSetter'], ['TestFluentSetter'], ['TestConstructor']];
     }
 
     private function generateBuilderForFixture(string $fixtureBuiltClass): void

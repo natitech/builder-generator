@@ -4,6 +4,7 @@ namespace Nati\BuilderGenerator\Analyzer;
 
 use Nati\BuilderGenerator\Driver\PhpDocParser;
 use Nati\BuilderGenerator\Property\ConstructorPropertyBuildStrategy;
+use Nati\BuilderGenerator\Property\FluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
 use PhpParser\Error;
@@ -13,6 +14,7 @@ use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Property;
+use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeFinder;
 use PhpParser\ParserFactory;
 
@@ -206,8 +208,10 @@ final class BuildableClassAnalyzer
             $writeStrategies[] = PublicPropertyBuildStrategy::class;
         }
 
-        if ($this->hasSetterForProperty($propertyName)) {
-            $writeStrategies[] = NonFluentSetterPropertyBuildStrategy::class;
+        if ($setter = $this->getSetterForProperty($propertyName)) {
+            $writeStrategies[] = $this->isFluent($setter) ?
+                FluentSetterPropertyBuildStrategy::class :
+                NonFluentSetterPropertyBuildStrategy::class;
         }
 
         if ($constructorInitializationPosition !== null) {
@@ -217,9 +221,18 @@ final class BuildableClassAnalyzer
         return $writeStrategies;
     }
 
-    private function hasSetterForProperty(string $propertyName): bool
+    private function getSetterForProperty(string $propertyName): ?ClassMethod
     {
-        return (boolean)$this->findMethod('set' . ucfirst($propertyName));
+        return $this->findMethod('set' . ucfirst($propertyName));
+    }
+
+    private function isFluent(ClassMethod $method): bool
+    {
+        if ($return = $this->nodeFinder->findFirstInstanceOf($method, Return_::class)) {
+            return isset($return->expr->name) && $return->expr->name === 'this';
+        }
+
+        return false;
     }
 
     private function findMethod(string $functionName)

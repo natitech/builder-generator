@@ -8,6 +8,8 @@ final class NonFluentSetterPropertyBuildStrategy implements PropertyBuildStrateg
 {
     public function getBuildFunctionBody(BuildableClass $class): string
     {
+        $this->guardUnusableConstructor($class);
+
         $buildBody = '$built = new ' . $class->name . '();';
 
         foreach ($class->properties as $property) {
@@ -17,5 +19,12 @@ final class NonFluentSetterPropertyBuildStrategy implements PropertyBuildStrateg
         $buildBody .= "\n\n" . 'return $built;';
 
         return $buildBody;
+    }
+
+    private function guardUnusableConstructor(BuildableClass $class)
+    {
+        if ($class->nbConstructorArgs > 0) {
+            throw new \InvalidArgumentException('Class constructor can not be used');
+        }
     }
 }
