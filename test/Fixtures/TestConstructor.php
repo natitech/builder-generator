@@ -6,16 +6,17 @@ final class TestConstructor
 {
     public  $test3;
 
+    /** @var string */
     private $test;
 
-    private $test2;
+    private $city;
 
     private $test4;
 
-    public function __construct($test2, $test)
+    public function __construct(string $city, $test)
     {
-        $this->test  = $test;
-        $this->test2 = $test2;
+        $this->test = $test;
+        $this->city = $city;
     }
 
     public function getTest()

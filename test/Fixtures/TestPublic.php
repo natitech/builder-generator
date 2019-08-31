@@ -6,6 +6,9 @@ final class TestPublic
 {
     public  $test;
 
+    /**
+     * @var float
+     */
     public  $test2;
 
     private $test3;

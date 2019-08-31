@@ -10,16 +10,16 @@ final class TestConstructorBuilder
     private $test;
 
     /** @var string */
-    private $test2;
+    private $city;
 
     public function __construct(Generator $faker)
     {
         $this->test = $faker->word;
-        $this->test2 = $faker->word;
+        $this->city = $faker->city;
     }
 
     public function build(): TestConstructor
     {
-        return new TestConstructor($this->test2, $this->test);
+        return new TestConstructor($this->city, $this->test);
     }
 }

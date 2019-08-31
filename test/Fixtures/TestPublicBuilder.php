@@ -6,16 +6,15 @@ use Faker\Generator;
 
 final class TestPublicBuilder
 {
-    /** @var string */
     private $test;
 
-    /** @var string */
+    /** @var float */
     private $test2;
 
     public function __construct(Generator $faker)
     {
-        $this->test = $faker->word;
-        $this->test2 = $faker->word;
+        $this->test = null;
+        $this->test2 = $faker->randomFloat();
     }
 
     public function build(): TestPublic

@@ -48,9 +48,11 @@ final class BuilderGenerator
     private function addProperties(): void
     {
         foreach ($this->builtClass->properties as $property) {
-            $this->builderClass->addProperty($property->name)
-                               ->addComment($property->inferredType ? '@var ' . $property->inferredType : null)
-                               ->setVisibility(ClassType::VISIBILITY_PRIVATE);
+            $propBuilder = $this->builderClass->addProperty($property->name)
+                                              ->setVisibility(ClassType::VISIBILITY_PRIVATE);
+            if ($property->inferredType) {
+                $propBuilder->addComment('@var ' . $property->inferredType);
+            }
         }
     }
 
@@ -59,9 +61,9 @@ final class BuilderGenerator
         $constructorBody = '';
         foreach ($this->builtClass->properties as $property) {
             $constructorBody .= "\n" . sprintf(
-                    '$this->%s = $faker->%s;',
+                    '$this->%s = %s;',
                     $property->name,
-                    $property->inferredFake ?: 'word'
+                    $property->inferredFake ? sprintf('$faker->%s', $property->inferredFake) : 'null'
                 );
         }
 

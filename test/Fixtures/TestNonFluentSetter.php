@@ -4,45 +4,48 @@ namespace Nati\BuilderGenerator\Test\Fixtures;
 
 final class TestNonFluentSetter
 {
-    public  $test3;
+    /** @var string */
+    public $lastname;
 
-    private $test;
+    /** @var string */
+    private $email;
 
-    private $test2;
+    /** @var string */
+    private $firstName;
 
     public function __construct()
     {
     }
 
-    public function getTest()
+    public function getEmail()
     {
-        return $this->test;
+        return $this->email;
     }
 
-    public function setTest($test)
+    public function setEmail($email)
     {
-        $this->test = $test;
+        $this->email = $email;
 
         return $this;
     }
 
-    public function getTest2()
+    public function getFirstName()
     {
-        return $this->test2;
+        return $this->firstName;
     }
 
-    public function setTest2($test2)
+    public function setFirstName($firstName)
     {
-        $this->test2 = $test2;
+        $this->firstName = $firstName;
     }
 
-    public function getTest3()
+    public function getLastname()
     {
-        return $this->test3;
+        return $this->lastname;
     }
 
-    public function setTest3($test3)
+    public function setLastname($lastname)
     {
-        $this->test3 = $test3;
+        $this->lastname = $lastname;
     }
 }

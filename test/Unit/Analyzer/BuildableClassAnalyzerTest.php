@@ -54,7 +54,7 @@ class BuildableClassAnalyzerTest extends UnitTest
     /**
      * @test
      */
-    public function canReturnAddPropertiesNames()
+    public function canAddPropertiesNames()
     {
         $buildableClass = $this->analyzer->analyse(
             '<?php namespace MyNs\Test; class MyClass{private $prop1; private $prop2;}'
@@ -110,5 +110,29 @@ class BuildableClassAnalyzerTest extends UnitTest
         );
         $this->assertSame(0, $buildableClass->properties[0]->constructorOrder);
         $this->assertEquals(1, $buildableClass->nbConstructorArgs);
+    }
+
+    /**
+     * @test
+     */
+    public function canInferScalarTypes()
+    {
+        $buildableClass = $this->analyzer->analyse(
+            '<?php namespace MyNs\Test; 
+            class MyClass{
+                /** @var float */
+                public $prop1;
+                
+                /** 
+                 * Prop 2
+                 * @var int 
+                 */
+                public $prop2;
+            }'
+        );
+
+        $this->assertCount(2, $buildableClass->properties);
+        $this->assertEquals('float', $buildableClass->properties[0]->inferredType);
+        $this->assertEquals('int', $buildableClass->properties[1]->inferredType);
     }
 }
