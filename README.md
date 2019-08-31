@@ -5,7 +5,7 @@ PHP standalone library to generate a builder (pattern) from a class.
 #### Installation
 
 ```
-composer require nati/buidler-generator
+composer require natitech/buidler-generator
 ```
 
 #### Usage
