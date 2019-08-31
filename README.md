@@ -1,4 +1,4 @@
-## Builder generator
+# Builder generator
 
 [![Build Status](https://travis-ci.org/natitech/builder-generator.svg?branch=master)](https://travis-ci.org/natitech/builder-generator)
 [![Latest Stable Version](https://poser.pugx.org/natitech/builder-generator/v/stable)](https://packagist.org/packages/natitech/builder-generator)
@@ -6,15 +6,15 @@
 
 PHP standalone library to generate a [builder pattern](https://en.wikipedia.org/wiki/Builder_pattern) from a class.
 
-#### Installation
+### Installation
 
 By using composer
 
 ```
-composer require natitech/buidler-generator
+composer require natitech/builder-generator
 ```
 
-#### Usage
+### Usage
 
 You can use the shell script to generate a builder near a class :  
 
@@ -44,6 +44,6 @@ To avoid producing unused code, there are no setters for builder properties. You
 
 The generator supports many stategies to write property values : public, setter, constructor. But you have to be consistent across the built class. The most used strategy inside the built class will be used for the entire builder class.
 
-#### IDE / PHPStorm
+### IDE / PHPStorm
 
 You can use this tool as an external tool in your IDE. For PHPStorm user, see https://www.jetbrains.com/help/phpstorm/configuring-third-party-tools.html.
