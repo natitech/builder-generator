@@ -23,5 +23,5 @@
       "Nati\\BuilderGenerator\\Test\\": "test"
     }
   },
-  "bin": ["bin/generate-builder"]
+  "bin": ["generate-builder"]
 }
