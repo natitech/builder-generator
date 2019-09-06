@@ -32,8 +32,28 @@ final class PhpDocParser
             if (isset($child->value->type)) {
                 return (string)$child->value->type;
             }
+
+            if (isset($child->name) && $child->name === '@ORM') {
+                $ormTypePos = strpos($child->value, 'type="');
+                if ($ormTypePos !== false) {
+                    $ormTypePosStart = $ormTypePos + 6;
+
+                    return $this->filterORMType(
+                        substr(
+                            $child->value,
+                            $ormTypePosStart,
+                            strpos($child->value, '"', $ormTypePosStart) - $ormTypePosStart
+                        )
+                    );
+                }
+            }
         }
 
         return null;
+    }
+
+    private function filterORMType(string $ormType)
+    {
+        return in_array($ormType, ['string', 'float', 'boolean', 'integer'], true) ? $ormType : null;
     }
 }

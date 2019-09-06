@@ -6,7 +6,7 @@ final class TestConstructor
 {
     public  $test3;
 
-    /** @var string */
+    /** @ORM\Column(type="string") */
     private $test;
 
     private $city;

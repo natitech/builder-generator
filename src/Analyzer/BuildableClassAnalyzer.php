@@ -185,7 +185,7 @@ final class BuildableClassAnalyzer
             return 'randomFloat()';
         }
 
-        if ($propertyType === 'int') {
+        if ($propertyType === 'int' || $propertyType === 'integer') {
             return 'randomNumber()';
         }
 
@@ -193,6 +193,10 @@ final class BuildableClassAnalyzer
             || $propertyType === 'bool'
             || (!$propertyType && preg_match('/^is[_A-Z]/', $propertyName))) {
             return 'boolean';
+        }
+
+        if (stripos($propertyType, 'date') !== false) {
+            return 'dateTime';
         }
 
         return null;
