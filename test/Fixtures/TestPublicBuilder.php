@@ -8,12 +8,16 @@ final class TestPublicBuilder
 {
     private $test;
 
+    /** @var int */
+    private $test4;
+
     /** @var float */
     private $test2;
 
     public function __construct(Generator $faker)
     {
         $this->test = null;
+        $this->test4 = $faker->randomNumber();
         $this->test2 = $faker->randomFloat();
     }
 
@@ -21,6 +25,7 @@ final class TestPublicBuilder
     {
         $built = new TestPublic();
         $built->test = $this->test;
+        $built->test4 = $this->test4;
         $built->test2 = $this->test2;
 
         return $built;

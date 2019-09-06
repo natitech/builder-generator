@@ -6,7 +6,7 @@ use Faker\Generator;
 
 final class TestConstructorBuilder
 {
-    /** @var string */
+    /** @var \DateTime */
     private $test;
 
     /** @var string */
@@ -14,7 +14,7 @@ final class TestConstructorBuilder
 
     public function __construct(Generator $faker)
     {
-        $this->test = $faker->word;
+        $this->test = $faker->dateTime;
         $this->city = $faker->city;
     }
 

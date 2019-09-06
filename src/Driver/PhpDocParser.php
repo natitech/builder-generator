@@ -54,6 +54,6 @@ final class PhpDocParser
 
     private function filterORMType(string $ormType)
     {
-        return in_array($ormType, ['string', 'float', 'boolean', 'integer'], true) ? $ormType : null;
+        return in_array($ormType, ['string', 'float', 'boolean', 'integer', 'datetime', 'date'], true) ? $ormType : null;
     }
 }

@@ -20,6 +20,19 @@ use PhpParser\ParserFactory;
 
 final class BuildableClassAnalyzer
 {
+    private const DOC_TO_PHP_TYPE = [
+        'string'    => 'string',
+        'float'     => 'float',
+        'int'       => 'int',
+        'integer'   => 'int',
+        'boolean'   => 'bool',
+        'bool'      => 'bool',
+        'date'      => '\DateTime',
+        'datetime'  => '\DateTime',
+        '\DateTime' => '\DateTime',
+        'DateTime'  => '\DateTime'
+    ];
+
     private $phpParser;
 
     private $nodeFinder;
@@ -161,7 +174,7 @@ final class BuildableClassAnalyzer
     {
         if (($comments = $propertyNode->getComments())
             && ($type = $this->docParser->getType((string)$comments[0]))) {
-            return $type;
+            return $this->toPhpType($type);
         }
 
         if ($constructorInitializationPosition !== null) {
@@ -173,7 +186,7 @@ final class BuildableClassAnalyzer
 
     private function inferFake(string $propertyName, ?string $propertyType): ?string
     {
-        if (!$propertyType || !$this->isScalar($propertyType)) {
+        if (!$propertyType || !$this->isFakeSupportedType($propertyType)) {
             return null;
         }
 
@@ -274,9 +287,13 @@ final class BuildableClassAnalyzer
         return $constructorArgs;
     }
 
-    private function isScalar(string $propertyType)
+    private function isFakeSupportedType(string $propertyType)
     {
-        return in_array($propertyType, ['string', 'float', 'int', 'boolean', 'bool'], true);
+        return in_array(
+            $propertyType,
+            ['string', 'float', 'int', 'integer', 'boolean', 'bool', 'date', 'datetime', '\DateTime', 'DateTime'],
+            true
+        );
     }
 
     private function getConstructorArgumentType(int $constructorInitializationPosition)
@@ -360,5 +377,10 @@ final class BuildableClassAnalyzer
     private function getConstructorNode()
     {
         return $this->findMethod('__construct');
+    }
+
+    private function toPhpType(?string $phpDocType)
+    {
+        return self::DOC_TO_PHP_TYPE[$phpDocType] ?? null;
     }
 }
