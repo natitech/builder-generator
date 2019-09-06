@@ -8,10 +8,11 @@ PHP standalone library to generate a [builder pattern](https://en.wikipedia.org/
 
 ### Installation
 
-By using composer
+By using composer on your project or globally
 
 ```
 composer require natitech/builder-generator
+composer global require natitech/builder-generator
 ```
 
 ### Usage
@@ -40,4 +41,11 @@ The generator supports many stategies to write property values : public, setter,
 
 ### IDE / PHPStorm
 
-You can use this tool as an external tool in your IDE. For PHPStorm user, see https://www.jetbrains.com/help/phpstorm/configuring-third-party-tools.html.
+You can use this tool as an external tool in your IDE. 
+
+For PHPStorm user, see https://www.jetbrains.com/help/phpstorm/configuring-third-party-tools.html. Example configuration :
+* Name : Generate builder
+* Description : Generate a builder class from a PHP class
+* Program [if global] : generate-builder 
+* Arguments : $FilePath$
+* Working directory : $FileDir$ 
