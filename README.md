@@ -46,6 +46,6 @@ You can use this tool as an external tool in your IDE.
 For PHPStorm user, see https://www.jetbrains.com/help/phpstorm/configuring-third-party-tools.html. Example configuration :
 * Name : Generate builder
 * Description : Generate a builder class from a PHP class
-* Program [if global] : generate-builder 
+* Program [if global installation, fix full path] : /path/to/your/home/.composer/vendor/bin/generate-builder 
 * Arguments : $FilePath$
 * Working directory : $FileDir$ 
