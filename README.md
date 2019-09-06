@@ -16,27 +16,21 @@ composer require natitech/builder-generator
 
 ### Usage
 
-You can use the shell script to generate a builder near a class :  
+You can use the binary to generate a builder near a class :  
 
 ```shell script
-chmod +x bin/generate.sh
-bin/generate.sh /path/to/entity
-```
-
-OR use the php script :
-
-```shell script
-php bin/generate.php
+./vendor/bin/generate-builder
 ```
 
 OR you can use it inside another PHP script :
 
 ```php
-\Nati\BuilderGenerator\FileBuilderGenerator\FileBuilderGenerator::create()
-    ->generateFrom('/path/to/entity');
+\Nati\BuilderGenerator\FileBuilderGenerator::create()->generateFrom('/path/to/entity');
 ```
 
 ### What will be generated 
+
+This will generate a Builder class aside the built class.
 
 The generated file may need to receive updates on codestyle, faker usages, infered types, etc. 
 

@@ -1,0 +1,37 @@
+#!/usr/bin/env php
+<?php
+
+function autoload() {
+    foreach (['/../../autoload.php', '/../vendor/autoload.php', '/vendor/autoload.php'] as $usableFilePath) {
+        $fullUsableFilePath = __DIR__ . $usableFilePath;
+        if (file_exists($fullUsableFilePath)) {
+            return $fullUsableFilePath;
+        }
+    }
+
+    return null;
+}
+
+if (!($autoloadFilePath = autoload())) {
+    echo 'You need to use composer to use generate-builder binary, learn more on https://getcomposer.org/';
+    echo "\n";
+    exit(1);
+}
+
+require $autoloadFilePath;
+
+use Nati\BuilderGenerator\FileBuilderGenerator;
+
+try {
+    FileBuilderGenerator::create()->generateFrom($argv[1] ?? null);
+} catch (Exception $e) {
+    echo 'Error while generating builder';
+    if ($msg = $e->getMessage()) {
+        echo "\n" . $msg;
+    }
+    echo "\n";
+    exit(1);
+}
+
+echo 'Done !' . "\n";
+exit(0);
