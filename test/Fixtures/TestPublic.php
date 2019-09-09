@@ -17,4 +17,10 @@ final class TestPublic
     public  $test2;
 
     private $test3;
+
+    /**
+     * @var string|null
+     * @ORM\Column(type="string", name="test", length=255, nullable=true)
+     */
+    public $address;
 }

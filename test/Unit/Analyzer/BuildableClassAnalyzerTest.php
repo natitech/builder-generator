@@ -153,4 +153,25 @@ class BuildableClassAnalyzerTest extends UnitTest
         $this->assertEquals('int', $buildableClass->properties[1]->inferredType);
         $this->assertEquals('randomNumber()', $buildableClass->properties[1]->inferredFake);
     }
+
+    /**
+     * @test
+     */
+    public function canInferNullableType()
+    {
+        $buildableClass = $this->analyzer->analyse(
+            '<?php namespace MyNs\Test; 
+            class MyClass{
+                /**
+                 * @var string|null
+                 * @ORM\Column(type="string", name="test", length=255, nullable=true)
+                 */
+                public $address;
+            }'
+        );
+
+        $this->assertCount(1, $buildableClass->properties);
+        $this->assertEquals('string', $buildableClass->properties[0]->inferredType);
+        $this->assertEquals('address', $buildableClass->properties[0]->inferredFake);
+    }
 }

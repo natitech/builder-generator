@@ -174,7 +174,7 @@ final class BuildableClassAnalyzer
     {
         if (($comments = $propertyNode->getComments())
             && ($type = $this->docParser->getType((string)$comments[0]))) {
-            return $this->toPhpType($type);
+            return $this->toPhpType($this->cleanNullable($type));
         }
 
         if ($constructorInitializationPosition !== null) {
@@ -382,5 +382,21 @@ final class BuildableClassAnalyzer
     private function toPhpType(?string $phpDocType)
     {
         return self::DOC_TO_PHP_TYPE[$phpDocType] ?? null;
+    }
+
+    private function cleanNullable(?string $phpDocType)
+    {
+        $phpDocType = str_replace(['(', ')'], '', $phpDocType);
+        $types = explode(' | ', $phpDocType);
+
+        if (count($types) > 1) {
+            foreach ($types as $type) {
+                if ($type !== 'null') {
+                    return $type;
+                }
+            }
+        }
+
+        return $phpDocType;
     }
 }
