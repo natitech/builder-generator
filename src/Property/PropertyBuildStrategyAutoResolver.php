@@ -4,7 +4,7 @@ namespace Nati\BuilderGenerator\Property;
 
 final class PropertyBuildStrategyAutoResolver implements PropertyBuildStrategyResolver
 {
-    private $resolved = [];
+    private array $resolved = [];
 
     public function resolveStrategy(string $strategyClass): PropertyBuildStrategy
     {

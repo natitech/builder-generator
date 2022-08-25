@@ -10,9 +10,9 @@ use PHPStan\PhpDocParser\Parser\TypeParser;
 
 final class PhpDocParser
 {
-    private $parser;
+    private PhpStanDocParser $parser;
 
-    private $lexer;
+    private Lexer $lexer;
 
     public function __construct()
     {
@@ -20,7 +20,7 @@ final class PhpDocParser
         $this->lexer  = new Lexer();
     }
 
-    public function getType(string $phpDoc)
+    public function getType(string $phpDoc): ?string
     {
         try {
             $docNode = $this->parser->parse(new TokenIterator($this->lexer->tokenize($phpDoc)));
@@ -52,8 +52,10 @@ final class PhpDocParser
         return null;
     }
 
-    private function filterORMType(string $ormType)
+    private function filterORMType(string $ormType): ?string
     {
-        return in_array($ormType, ['string', 'float', 'boolean', 'integer', 'datetime', 'date'], true) ? $ormType : null;
+        return in_array($ormType, ['string', 'float', 'boolean', 'integer', 'datetime', 'date'], true) ?
+            $ormType :
+            null;
     }
 }

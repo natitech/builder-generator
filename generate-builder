@@ -1,7 +1,8 @@
 #!/usr/bin/env php
 <?php
 
-function autoload() {
+function autoload(): ?string
+{
     foreach (['/../../autoload.php', '/../vendor/autoload.php', '/vendor/autoload.php'] as $usableFilePath) {
         $fullUsableFilePath = __DIR__ . $usableFilePath;
         if (file_exists($fullUsableFilePath)) {

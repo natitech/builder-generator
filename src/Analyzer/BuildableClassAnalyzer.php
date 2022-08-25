@@ -9,6 +9,7 @@ use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
 use PhpParser\Error;
 use PhpParser\ErrorHandler\Throwing;
+use PhpParser\Node;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -16,6 +17,7 @@ use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeFinder;
+use PhpParser\Parser;
 use PhpParser\ParserFactory;
 
 final class BuildableClassAnalyzer
@@ -33,19 +35,21 @@ final class BuildableClassAnalyzer
         'DateTime'  => '\DateTime'
     ];
 
-    private $phpParser;
+    private Parser $phpParser;
 
-    private $nodeFinder;
+    private NodeFinder $nodeFinder;
 
-    private $docParser;
+    private PhpDocParser $docParser;
 
-    private $ast;
+    /** @var Node\Stmt[] */
+    private array $ast;
 
-    private $classNode;
+    private Node $classNode;
 
-    private $classMethodNodes;
+    /** @var Node[] */
+    private array $classMethodNodes;
 
-    private $analysis;
+    private BuildableClass $analysis;
 
     public function __construct()
     {
@@ -55,8 +59,6 @@ final class BuildableClassAnalyzer
     }
 
     /**
-     * @param string $classContent
-     * @return \Nati\BuilderGenerator\Analyzer\BuildableClass
      * @throws \InvalidArgumentException if $classContent is not buildable
      */
     public function analyse(string $classContent): BuildableClass
@@ -104,7 +106,7 @@ final class BuildableClassAnalyzer
         $this->analysis->nbConstructorArgs = count($this->getConstructorArgs());
     }
 
-    private function guardAst(string $classContent)
+    private function guardAst(string $classContent): array
     {
         try {
             return $this->phpParser->parse($classContent, new Throwing());
@@ -113,7 +115,7 @@ final class BuildableClassAnalyzer
         }
     }
 
-    private function guardClassNode()
+    private function guardClassNode(): Node
     {
         if (!($classNode = $this->nodeFinder->findFirstInstanceOf($this->ast, Class_::class))) {
             throw new \InvalidArgumentException('No class found');
@@ -122,7 +124,7 @@ final class BuildableClassAnalyzer
         return $classNode;
     }
 
-    private function getNamespace()
+    private function getNamespace(): ?string
     {
         if ($nsNode = $this->nodeFinder->findFirstInstanceOf($this->ast, Namespace_::class)) {
             return (string)$nsNode->name;
@@ -252,7 +254,7 @@ final class BuildableClassAnalyzer
         return false;
     }
 
-    private function findMethod(string $functionName)
+    private function findMethod(string $functionName): ?ClassMethod
     {
         if (!$this->classMethodNodes) {
             return null;
@@ -268,7 +270,7 @@ final class BuildableClassAnalyzer
         return null;
     }
 
-    private function getConstructorArgs()
+    private function getConstructorArgs(): array
     {
         return $this->getMethodArgNames($this->getConstructorNode());
     }
@@ -287,7 +289,7 @@ final class BuildableClassAnalyzer
         return $constructorArgs;
     }
 
-    private function isFakeSupportedType(string $propertyType)
+    private function isFakeSupportedType(string $propertyType): bool
     {
         return in_array(
             $propertyType,
@@ -296,7 +298,7 @@ final class BuildableClassAnalyzer
         );
     }
 
-    private function getConstructorArgumentType(int $constructorInitializationPosition)
+    private function getConstructorArgumentType(int $constructorInitializationPosition): ?string
     {
         $constructorNode = $this->getConstructorNode();
 
@@ -310,11 +312,9 @@ final class BuildableClassAnalyzer
     }
 
     /**
-     * From <https://github.com/fzaninotto/Faker/blob/master/src/Faker/Guesser/Name.php>
-     * @param $propertyName
-     * @return string
+     * @see <https://github.com/fzaninotto/Faker/blob/master/src/Faker/Guesser/Name.php>
      */
-    private function guessStringFakeFunction($propertyName)
+    private function guessStringFakeFunction(string $propertyName): string
     {
         switch (str_replace('_', '', $propertyName)) {
             case 'firstname':
@@ -336,6 +336,7 @@ final class BuildableClassAnalyzer
                 return 'address';
             case 'city':
             case 'town':
+            case 'county':
                 return 'city';
             case 'streetaddress':
                 return 'streetAddress';
@@ -344,12 +345,8 @@ final class BuildableClassAnalyzer
                 return 'postcode';
             case 'state':
                 return 'state';
-            case 'county':
-                return 'city';
-                break;
             case 'country':
                 return 'countryCode';
-                break;
             case 'locale':
                 return 'locale';
             case 'currency':
@@ -374,12 +371,12 @@ final class BuildableClassAnalyzer
         return 'word';
     }
 
-    private function getConstructorNode()
+    private function getConstructorNode(): ?ClassMethod
     {
         return $this->findMethod('__construct');
     }
 
-    private function toPhpType(?string $phpDocType)
+    private function toPhpType(?string $phpDocType): ?string
     {
         return self::DOC_TO_PHP_TYPE[$phpDocType] ?? null;
     }

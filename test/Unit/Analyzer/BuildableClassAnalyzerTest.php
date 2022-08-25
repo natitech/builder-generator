@@ -11,8 +11,7 @@ use Nati\BuilderGenerator\Test\Unit\UnitTest;
 
 class BuildableClassAnalyzerTest extends UnitTest
 {
-    /** @var BuildableClassAnalyzer */
-    private $analyzer;
+    private BuildableClassAnalyzer $analyzer;
 
     protected function setUp(): void
     {

@@ -7,8 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 final class GeneratorTest extends TestCase
 {
-    /** @var FileBuilderGenerator */
-    private $generator;
+    private FileBuilderGenerator $generator;
 
     public static function setUpBeforeClass(): void
     {
@@ -47,11 +46,10 @@ final class GeneratorTest extends TestCase
     }
 
     /**
-     * @param string $testedClass
      * @test
      * @dataProvider validClasses
      */
-    public function canCreateBuilderFile($testedClass)
+    public function canCreateBuilderFile(string $testedClass)
     {
         $this->generateBuilderForFixture($testedClass);
 
@@ -68,7 +66,7 @@ final class GeneratorTest extends TestCase
         $this->generateBuilderForFixture('TestUnbuildableConstructor');
     }
 
-    public function validClasses()
+    public function validClasses(): array
     {
         return [['TestPublic'], ['TestNonFluentSetter'], ['TestFluentSetter'], ['TestConstructor']];
     }
@@ -83,6 +81,6 @@ final class GeneratorTest extends TestCase
         $filePath = self::getFixturesFilePath($expectedBuilderClass);
 
         $this->assertFileExists($filePath);
-        $this->assertStringContainsString('class ' . $expectedBuilderClass . '', file_get_contents($filePath));
+        $this->assertStringContainsString('class ' . $expectedBuilderClass, file_get_contents($filePath));
     }
 }

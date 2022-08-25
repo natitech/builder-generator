@@ -4,19 +4,19 @@ namespace Nati\BuilderGenerator\Driver;
 
 final class Filesystem
 {
-    public function read($filePath): string
+    public function read(string $filePath): string
     {
         $this->guardExists($filePath);
 
         return file_get_contents($filePath);
     }
 
-    public function writeNear($filePath, $suffix, $content): void
+    public function writeNear(string $filePath, string $suffix, string $content): void
     {
         file_put_contents($this->makeNewFilePath($this->guardExists($filePath), $suffix), $content);
     }
 
-    private function guardExists($filePath): \SplFileInfo
+    private function guardExists(string $filePath): \SplFileInfo
     {
         if (!$filePath || !file_exists($filePath)) {
             throw new \InvalidArgumentException('File not found');
@@ -25,7 +25,7 @@ final class Filesystem
         return new \SplFileInfo($filePath);
     }
 
-    private function makeNewFilePath(\SplFileInfo $currentFilePath, $suffix): string
+    private function makeNewFilePath(\SplFileInfo $currentFilePath, string $suffix): string
     {
         $ext = $currentFilePath->getExtension();
 

@@ -11,13 +11,11 @@ use Nette\PhpGenerator\PsrPrinter;
 
 final class BuilderGenerator
 {
-    private $strategyResolver;
+    private PropertyBuildStrategyResolver $strategyResolver;
 
-    /** @var BuildableClass */
-    private $builtClass;
+    private BuildableClass $builtClass;
 
-    /** @var ClassType */
-    private $builderClass;
+    private ClassType $builderClass;
 
     public function __construct(PropertyBuildStrategyResolver $strategyResolver)
     {

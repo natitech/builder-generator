@@ -4,15 +4,12 @@ namespace Nati\BuilderGenerator\Analyzer;
 
 final class BuildableClass
 {
-    /** @var string */
-    public $name;
+    public string $name;
 
-    /** @var string */
-    public $namespace;
+    public string $namespace;
 
-    /** @var int */
-    public $nbConstructorArgs;
+    public int $nbConstructorArgs = 0;
 
     /** @var BuildableProperty[] */
-    public $properties = [];
+    public array $properties = [];
 }

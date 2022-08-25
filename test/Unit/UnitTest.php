@@ -31,7 +31,7 @@ abstract class UnitTest extends TestCase
         return $property;
     }
 
-    protected function mixedStrategies()
+    protected function mixedStrategies(): array
     {
         return array_merge($this->nullStrategies(), $this->commentStrategies());
     }

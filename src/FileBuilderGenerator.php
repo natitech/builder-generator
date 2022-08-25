@@ -8,11 +8,11 @@ use Nati\BuilderGenerator\Property\PropertyBuildStrategyAutoResolver;
 
 final class FileBuilderGenerator
 {
-    private $fs;
+    private Filesystem $fs;
 
-    private $classAnalyzer;
+    private BuildableClassAnalyzer $classAnalyzer;
 
-    private $generator;
+    private BuilderGenerator $generator;
 
     public function __construct(Filesystem $fs, BuildableClassAnalyzer $classAnalyzer, BuilderGenerator $generator)
     {
@@ -30,7 +30,7 @@ final class FileBuilderGenerator
         );
     }
 
-    public function generateFrom($classFilePath): void
+    public function generateFrom(string $classFilePath): void
     {
         $this->fs->writeNear(
             $classFilePath,

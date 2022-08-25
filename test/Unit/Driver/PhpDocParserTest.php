@@ -7,7 +7,7 @@ use Nati\BuilderGenerator\Test\Unit\UnitTest;
 
 final class PhpDocParserTest extends UnitTest
 {
-    private $parser;
+    private PhpDocParser $parser;
 
     protected function setUp(): void
     {

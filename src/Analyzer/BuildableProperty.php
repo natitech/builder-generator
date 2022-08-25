@@ -4,23 +4,19 @@ namespace Nati\BuilderGenerator\Analyzer;
 
 final class BuildableProperty
 {
-    /** @var string */
-    public $name;
+    public string $name;
 
     /** @var string[] */
-    public $writeStrategies = [];
+    public array $writeStrategies = [];
 
-    /** @var int */
-    public $constructorOrder;
+    public ?int $constructorOrder;
 
-    /** @var string */
-    public $inferredType;
+    public ?string $inferredType;
 
-    /** @var string */
-    public $inferredFake;
+    public ?string $inferredFake;
 
     public function __toString()
     {
-        return (string)$this->name;
+        return $this->name;
     }
 }

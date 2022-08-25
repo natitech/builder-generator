@@ -7,8 +7,7 @@ use Nati\BuilderGenerator\Test\Double\Property\PropertyBuildStrategyResolverMock
 
 class BuilderGeneratorTest extends UnitTest
 {
-    /** @var \Nati\BuilderGenerator\BuilderGenerator */
-    private $generator;
+    private BuilderGenerator $generator;
 
     protected function setUp(): void
     {
@@ -110,7 +109,7 @@ class BuilderGeneratorTest extends UnitTest
         return $this->generator->getBuilderClassContent($this->makeClass($properties));
     }
 
-    private function spaceless(string $expected)
+    private function spaceless(string $expected): string
     {
         return str_replace([' ', "\n"], '', $expected);
     }

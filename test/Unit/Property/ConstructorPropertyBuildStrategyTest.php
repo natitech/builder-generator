@@ -7,8 +7,7 @@ use Nati\BuilderGenerator\Test\Unit\UnitTest;
 
 class ConstructorPropertyBuildStrategyTest extends UnitTest
 {
-    /** @var ConstructorPropertyBuildStrategy */
-    private $strategy;
+    private ConstructorPropertyBuildStrategy $strategy;
 
     protected function setUp(): void
     {
