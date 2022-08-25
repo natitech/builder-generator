@@ -6,11 +6,8 @@ use Faker\Generator;
 
 final class TestNonFluentSetterBuilder
 {
-    /** @var string */
-    private $lastname;
-
-    /** @var string */
-    private $firstName;
+    private string $lastname;
+    private string $firstName;
 
     public function __construct(Generator $faker)
     {

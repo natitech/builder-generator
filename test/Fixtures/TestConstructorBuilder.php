@@ -6,11 +6,9 @@ use Faker\Generator;
 
 final class TestConstructorBuilder
 {
-    /** @var \DateTime */
-    private $test;
+    private \DateTime $test;
 
-    /** @var string */
-    private $city;
+    private string $city;
 
     public function __construct(Generator $faker)
     {

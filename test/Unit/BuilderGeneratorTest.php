@@ -54,8 +54,19 @@ class BuilderGeneratorTest extends UnitTest
      */
     public function canAddProperties()
     {
+        $property = $this->makeProperty();
+        $property->inferredType = null;
+
+        $this->assertBuilderClassCodeContains('private $prop1;', $this->getBuilderClassContent([$property]));
+    }
+
+    /**
+     * @test
+     */
+    public function canAddTypedProperties()
+    {
         $this->assertBuilderClassCodeContains(
-            'private $prop1;',
+            'private string $prop1;',
             $this->getBuilderClassContent([$this->makeProperty()])
         );
     }

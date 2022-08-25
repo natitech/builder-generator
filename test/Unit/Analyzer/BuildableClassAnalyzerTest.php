@@ -144,13 +144,16 @@ class BuildableClassAnalyzerTest extends UnitTest
                  * @var integer
                  */
                 public $prop2;
+                
+                public float $prop3;
             }'
         );
 
-        $this->assertCount(2, $buildableClass->properties);
+        $this->assertCount(3, $buildableClass->properties);
         $this->assertEquals('float', $buildableClass->properties[0]->inferredType);
         $this->assertEquals('int', $buildableClass->properties[1]->inferredType);
         $this->assertEquals('randomNumber()', $buildableClass->properties[1]->inferredFake);
+        $this->assertEquals('float', $buildableClass->properties[2]->inferredType);
     }
 
     /**

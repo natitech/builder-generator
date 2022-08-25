@@ -49,11 +49,9 @@ final class BuilderGenerator
     private function addProperties(): void
     {
         foreach ($this->builtClass->properties as $property) {
-            $propBuilder = $this->builderClass->addProperty($property->name)
-                                              ->setVisibility(ClassType::VISIBILITY_PRIVATE);
-            if ($property->inferredType) {
-                $propBuilder->addComment('@var ' . $property->inferredType);
-            }
+            $this->builderClass->addProperty($property->name)
+                               ->setType($property->inferredType)
+                               ->setVisibility(ClassType::VISIBILITY_PRIVATE);
         }
     }
 

@@ -174,6 +174,10 @@ final class BuildableClassAnalyzer
 
     private function inferType(Property $propertyNode, ?int $constructorInitializationPosition): ?string
     {
+        if ($type = $propertyNode->type) {
+            return $this->toPhpType($this->cleanNullable($type));
+        }
+
         if (($comments = $propertyNode->getComments())
             && ($type = $this->docParser->getType((string)$comments[0]))) {
             return $this->toPhpType($this->cleanNullable($type));
