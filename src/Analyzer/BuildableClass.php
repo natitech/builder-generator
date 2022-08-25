@@ -6,7 +6,7 @@ final class BuildableClass
 {
     public string $name;
 
-    public string $namespace;
+    public ?string $namespace;
 
     public int $nbConstructorArgs = 0;
 

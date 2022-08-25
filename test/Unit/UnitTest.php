@@ -13,8 +13,18 @@ abstract class UnitTest extends TestCase
     protected function makeClass(array $properties): BuildableClass
     {
         $class             = new BuildableClass();
+        $class->namespace  = null;
         $class->name       = 'TestPublic';
+        $class->properties = $properties;
+
+        return $class;
+    }
+
+    protected function makeFullClass(array $properties): BuildableClass
+    {
+        $class             = new BuildableClass();
         $class->namespace  = 'Nati\BuilderGenerator\Test\Fixtures';
+        $class->name       = 'TestPublic';
         $class->properties = $properties;
 
         return $class;

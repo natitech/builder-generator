@@ -19,6 +19,17 @@ class BuilderGeneratorTest extends UnitTest
     /**
      * @test
      */
+    public function canGenerateClassNameWithoutNamespace()
+    {
+        $this->assertBuilderClassCodeContains(
+            'class TestPublicBuilder',
+            $this->generator->getBuilderClassContent($this->makeClass([]))
+        );
+    }
+
+    /**
+     * @test
+     */
     public function canGenerateClassNameAndNamespace()
     {
         $builderClassContent = $this->getBuilderClassContent();
@@ -106,7 +117,7 @@ class BuilderGeneratorTest extends UnitTest
 
     private function getBuilderClassContent(array $properties = []): string
     {
-        return $this->generator->getBuilderClassContent($this->makeClass($properties));
+        return $this->generator->getBuilderClassContent($this->makeFullClass($properties));
     }
 
     private function spaceless(string $expected): string

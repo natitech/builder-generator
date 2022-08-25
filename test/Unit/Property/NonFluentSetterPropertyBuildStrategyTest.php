@@ -18,7 +18,7 @@ $built->setProp1($this->prop1);
 
 return $built;',
             (new NonFluentSetterPropertyBuildStrategy())
-                ->getBuildFunctionBody($this->makeClass([$this->makeProperty()]))
+                ->getBuildFunctionBody($this->makeFullClass([$this->makeProperty()]))
         );
     }
 }

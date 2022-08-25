@@ -17,7 +17,7 @@ class PublicPropertyBuildStrategyTest extends UnitTest
 $built->prop1 = $this->prop1;
 
 return $built;',
-            (new PublicPropertyBuildStrategy())->getBuildFunctionBody($this->makeClass([$this->makeProperty()]))
+            (new PublicPropertyBuildStrategy())->getBuildFunctionBody($this->makeFullClass([$this->makeProperty()]))
         );
     }
 }

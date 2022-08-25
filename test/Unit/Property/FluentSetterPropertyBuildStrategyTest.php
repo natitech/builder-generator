@@ -16,7 +16,7 @@ class FluentSetterPropertyBuildStrategyTest extends UnitTest
             'return (new TestPublic())
 ->setProp1($this->prop1);',
             (new FluentSetterPropertyBuildStrategy())
-                ->getBuildFunctionBody($this->makeClass([$this->makeProperty()]))
+                ->getBuildFunctionBody($this->makeFullClass([$this->makeProperty()]))
         );
     }
 }

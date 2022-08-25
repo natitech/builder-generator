@@ -25,7 +25,7 @@ class ConstructorPropertyBuildStrategyTest extends UnitTest
         $prop1->constructorOrder = 1;
         $prop2                   = $this->makeProperty('prop2');
         $prop2->constructorOrder = 0;
-        $class                   = $this->makeClass([$prop1, $prop2]);
+        $class                   = $this->makeFullClass([$prop1, $prop2]);
 
         $class->nbConstructorArgs = 2;
 
@@ -42,7 +42,7 @@ class ConstructorPropertyBuildStrategyTest extends UnitTest
     {
         $this->expectException(\InvalidArgumentException::class);
 
-        $class                    = $this->makeClass([$this->makeProperty()]);
+        $class                    = $this->makeFullClass([$this->makeProperty()]);
         $class->nbConstructorArgs = 2;
 
         $this->strategy->getBuildFunctionBody($class);

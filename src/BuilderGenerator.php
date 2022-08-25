@@ -17,9 +17,12 @@ final class BuilderGenerator
 
     private ClassType $builderClass;
 
+    private PsrPrinter $printer;
+
     public function __construct(PropertyBuildStrategyResolver $strategyResolver)
     {
         $this->strategyResolver = $strategyResolver;
+        $this->printer          = new PsrPrinter();
     }
 
     public function getBuilderClassContent(BuildableClass $buildableClass): string
@@ -31,7 +34,7 @@ final class BuilderGenerator
         $this->addConstructor();
         $this->addBuildMethod($mostUsedStrategy);
 
-        return $this->dump($this->addNamespace());
+        return $this->dump();
     }
 
     private function init(BuildableClass $buildableClass, ?string $mostUsedStrategy): void
@@ -78,7 +81,14 @@ final class BuilderGenerator
                            ->addBody($this->getBuildFunctionBody($this->builtClass, $mostUsedStrategy));
     }
 
-    private function addNamespace(): PhpNamespace
+    private function dump(): string
+    {
+        return '<?php' . "\n\n" . ($this->builtClass->namespace ?
+                $this->printer->printNamespace($this->getNamespace()) :
+                $this->printer->printClass($this->builderClass));
+    }
+
+    private function getNamespace(): PhpNamespace
     {
         $namespace = new PhpNamespace($this->builtClass->namespace);
         $namespace->addUse(Generator::class);
@@ -86,11 +96,6 @@ final class BuilderGenerator
         $namespace->add($this->builderClass);
 
         return $namespace;
-    }
-
-    private function dump(PhpNamespace $namespace): string
-    {
-        return '<?php' . "\n\n" . (new PsrPrinter())->printNamespace($namespace);
     }
 
     private function getBuildFunctionBody(BuildableClass $builtClass, $strategy): string
