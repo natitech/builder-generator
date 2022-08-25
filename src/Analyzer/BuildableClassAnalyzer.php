@@ -111,7 +111,7 @@ final class BuildableClassAnalyzer
         try {
             return $this->phpParser->parse($classContent, new Throwing());
         } catch (Error $e) {
-            throw new \InvalidArgumentException('Not php code', null, $e);
+            throw new \InvalidArgumentException('Not php code', 0, $e);
         }
     }
 
