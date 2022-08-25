@@ -68,7 +68,7 @@ final class BuilderGenerator
         $this->builderClass->addMethod('__construct')
                            ->addBody($constructorBody)
                            ->addParameter('faker')
-                           ->setTypeHint(Generator::class);
+                           ->setType(Generator::class);
     }
 
     private function addBuildMethod(?string $mostUsedStrategy): void
