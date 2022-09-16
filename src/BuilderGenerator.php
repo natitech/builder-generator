@@ -5,6 +5,7 @@ namespace Nati\BuilderGenerator;
 use Faker\Generator;
 use Nati\BuilderGenerator\Analyzer\BuildableClass;
 use Nati\BuilderGenerator\Property\PropertyBuildStrategyResolver;
+use Nati\BuilderGenerator\Property\StaticBuildMethodPropertyBuildStrategy;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PsrPrinter;
@@ -62,7 +63,7 @@ final class BuilderGenerator
             $constructorBody .= "\n" . sprintf(
                     '$this->%s = %s;',
                     $property->name,
-                    $property->inferredFake ? sprintf('$faker->%s', $property->inferredFake) : 'null'
+                    $property->inferredFake ?: 'null'
                 );
         }
 

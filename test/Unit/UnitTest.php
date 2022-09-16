@@ -35,7 +35,7 @@ abstract class UnitTest extends TestCase
         $property                  = new BuildableProperty();
         $property->name            = $name;
         $property->inferredType    = 'string';
-        $property->inferredFake    = 'word';
+        $property->inferredFake    = '$faker->word';
         $property->writeStrategies = $writeStrategies ?: $this->nullStrategies();
 
         return $property;

@@ -23,4 +23,12 @@ final class TestPublic
      * @ORM\Column(type="string", name="test", length=255, nullable=true)
      */
     public $address;
+
+    /**
+     * @var string|null
+     */
+    #[Attribute\Address(name: 'address')]
+    private ?string $address2;
+
+    public ?\DateTimeImmutable $test5;
 }

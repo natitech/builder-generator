@@ -23,16 +23,18 @@ use PhpParser\ParserFactory;
 final class BuildableClassAnalyzer
 {
     private const DOC_TO_PHP_TYPE = [
-        'string'    => 'string',
-        'float'     => 'float',
-        'int'       => 'int',
-        'integer'   => 'int',
-        'boolean'   => 'bool',
-        'bool'      => 'bool',
-        'date'      => '\DateTime',
-        'datetime'  => '\DateTime',
-        '\DateTime' => '\DateTime',
-        'DateTime'  => '\DateTime'
+        'string'             => 'string',
+        'float'              => 'float',
+        'int'                => 'int',
+        'integer'            => 'int',
+        'boolean'            => 'bool',
+        'bool'               => 'bool',
+        'date'               => '\DateTime',
+        'datetime'           => '\DateTime',
+        '\DateTime'          => '\DateTime',
+        'DateTime'           => '\DateTime',
+        '\DateTimeImmutable' => '\DateTimeImmutable',
+        'DateTimeImmutable'  => '\DateTimeImmutable'
     ];
 
     private Parser $phpParser;
@@ -201,21 +203,25 @@ final class BuildableClassAnalyzer
         }
 
         if ($propertyType === 'float') {
-            return 'randomFloat()';
+            return '$faker->randomFloat()';
         }
 
         if ($propertyType === 'int' || $propertyType === 'integer') {
-            return 'randomNumber()';
+            return '$faker->randomNumber()';
         }
 
         if ($propertyType === 'boolean'
             || $propertyType === 'bool'
             || (!$propertyType && preg_match('/^is[_A-Z]/', $propertyName))) {
-            return 'boolean';
+            return '$faker->boolean';
         }
 
         if (stripos($propertyType, 'date') !== false) {
-            return 'dateTime';
+            if (stripos($propertyType, 'immutable') !== false) {
+                return '\DateTimeImmutable::createFromMutable($faker->dateTime)';
+            }
+
+            return '$faker->dateTime';
         }
 
         return null;
@@ -297,7 +303,20 @@ final class BuildableClassAnalyzer
     {
         return in_array(
             $propertyType,
-            ['string', 'float', 'int', 'integer', 'boolean', 'bool', 'date', 'datetime', '\DateTime', 'DateTime'],
+            [
+                'string',
+                'float',
+                'int',
+                'integer',
+                'boolean',
+                'bool',
+                'date',
+                'datetime',
+                '\DateTime',
+                'DateTime',
+                '\DateTimeImmutable',
+                'DateTimeImmutable'
+            ],
             true
         );
     }
@@ -322,57 +341,57 @@ final class BuildableClassAnalyzer
     {
         switch (str_replace('_', '', $propertyName)) {
             case 'firstname':
-                return 'firstName';
+                return '$faker->firstName';
             case 'lastname':
-                return 'lastName';
+                return '$faker->lastName';
             case 'username':
             case 'login':
-                return 'userName';
+                return '$faker->userName';
             case 'email':
             case 'emailaddress':
-                return 'email';
+                return '$faker->email';
             case 'phonenumber':
             case 'phone':
             case 'telephone':
             case 'telnumber':
-                return 'phoneNumber';
+                return '$faker->phoneNumber';
             case 'address':
-                return 'address';
+                return '$faker->address';
             case 'city':
             case 'town':
             case 'county':
-                return 'city';
+                return '$faker->city';
             case 'streetaddress':
-                return 'streetAddress';
+                return '$faker->streetAddress';
             case 'postcode':
             case 'zipcode':
-                return 'postcode';
+                return '$faker->postcode';
             case 'state':
-                return 'state';
+                return '$faker->state';
             case 'country':
-                return 'countryCode';
+                return '$faker->countryCode';
             case 'locale':
-                return 'locale';
+                return '$faker->locale';
             case 'currency':
             case 'currencycode':
-                return 'currencyCode';
+                return '$faker->currencyCode';
             case 'url':
             case 'website':
-                return 'url';
+                return '$faker->url';
             case 'company':
             case 'companyname':
             case 'employer':
-                return 'company';
+                return '$faker->company';
             case 'title':
-                return 'title';
+                return '$faker->title';
             case 'body':
             case 'summary':
             case 'article':
             case 'description':
-                return 'text';
+                return '$faker->text';
         }
 
-        return 'word';
+        return '$faker->word';
     }
 
     private function getConstructorNode(): ?ClassMethod

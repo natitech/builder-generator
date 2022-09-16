@@ -152,7 +152,7 @@ class BuildableClassAnalyzerTest extends UnitTest
         $this->assertCount(3, $buildableClass->properties);
         $this->assertEquals('float', $buildableClass->properties[0]->inferredType);
         $this->assertEquals('int', $buildableClass->properties[1]->inferredType);
-        $this->assertEquals('randomNumber()', $buildableClass->properties[1]->inferredFake);
+        $this->assertEquals('$faker->randomNumber()', $buildableClass->properties[1]->inferredFake);
         $this->assertEquals('float', $buildableClass->properties[2]->inferredType);
     }
 
@@ -174,6 +174,6 @@ class BuildableClassAnalyzerTest extends UnitTest
 
         $this->assertCount(1, $buildableClass->properties);
         $this->assertEquals('string', $buildableClass->properties[0]->inferredType);
-        $this->assertEquals('address', $buildableClass->properties[0]->inferredFake);
+        $this->assertEquals('$faker->address', $buildableClass->properties[0]->inferredFake);
     }
 }
