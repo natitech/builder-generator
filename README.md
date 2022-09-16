@@ -36,7 +36,10 @@ The generated file may need to receive updates on codestyle, faker usages, infer
 
 To avoid producing unused code, there are no setters for builder properties. Your IDE should be able to easily generate them.  
 
-The generator supports many stategies to write property values : public, setter, constructor. But you have to be consistent across the built class. The most used strategy inside the built class will be used for the entire builder class.
+The generator supports many stategies to write property values : public, setter (fluent or not), constructor. 
+But you have to be consistent across the built class. 
+The most used strategy inside the built class will be used for the entire builder class.
+A "static build method" strategy will be used when no other strategy is supported. 
 
 ### IDE / PHPStorm
 

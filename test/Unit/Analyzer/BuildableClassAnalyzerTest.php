@@ -7,6 +7,7 @@ use Nati\BuilderGenerator\Property\ConstructorPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\FluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
+use Nati\BuilderGenerator\Property\StaticBuildMethodPropertyBuildStrategy;
 use Nati\BuilderGenerator\Test\Unit\UnitTest;
 
 class BuildableClassAnalyzerTest extends UnitTest
@@ -75,7 +76,10 @@ class BuildableClassAnalyzerTest extends UnitTest
         );
 
         $this->assertCount(1, $buildableClass->properties);
-        $this->assertEquals([PublicPropertyBuildStrategy::class], $buildableClass->properties[0]->writeStrategies);
+        $this->assertEquals(
+            [PublicPropertyBuildStrategy::class],
+            $buildableClass->properties[0]->writeStrategies
+        );
     }
 
     /**
@@ -126,6 +130,22 @@ class BuildableClassAnalyzerTest extends UnitTest
         );
         $this->assertSame(0, $buildableClass->properties[0]->constructorOrder);
         $this->assertEquals(1, $buildableClass->nbConstructorArgs);
+    }
+
+    /**
+     * @test
+     */
+    public function whenNoStrategyDefaultToStaticBuildMethod()
+    {
+        $buildableClass = $this->analyzer->analyse(
+            '<?php namespace MyNs\Test; class MyClass{private $prop1;}'
+        );
+
+        $this->assertCount(1, $buildableClass->properties);
+        $this->assertContains(
+            StaticBuildMethodPropertyBuildStrategy::class,
+            $buildableClass->properties[0]->writeStrategies
+        );
     }
 
     /**

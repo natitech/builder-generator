@@ -7,6 +7,7 @@ use Nati\BuilderGenerator\Property\ConstructorPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\FluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
+use Nati\BuilderGenerator\Property\StaticBuildMethodPropertyBuildStrategy;
 use PhpParser\Error;
 use PhpParser\ErrorHandler\Throwing;
 use PhpParser\Node;
@@ -177,7 +178,7 @@ final class BuildableClassAnalyzer
     private function inferType(Property $propertyNode, ?int $constructorInitializationPosition): ?string
     {
         if ($type = $propertyNode->type) {
-            return $this->toPhpType($this->cleanNullable($type->toString()));
+            return $type instanceof Node\NullableType ? $type->type->toString() : $type->toString();
         }
 
         if (($comments = $propertyNode->getComments())
@@ -245,6 +246,10 @@ final class BuildableClassAnalyzer
 
         if ($constructorInitializationPosition !== null) {
             $writeStrategies[] = ConstructorPropertyBuildStrategy::class;
+        }
+
+        if (!$writeStrategies) {
+            $writeStrategies[] = StaticBuildMethodPropertyBuildStrategy::class;
         }
 
         return $writeStrategies;
@@ -407,7 +412,7 @@ final class BuildableClassAnalyzer
     private function cleanNullable(?string $phpDocType)
     {
         $phpDocType = str_replace(['(', ')'], '', $phpDocType);
-        $types = explode(' | ', $phpDocType);
+        $types      = explode(' | ', $phpDocType);
 
         if (count($types) > 1) {
             foreach ($types as $type) {
