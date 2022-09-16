@@ -63,8 +63,11 @@ final class FileBuilderGenerator
     public function generateFrom(string $builtClassFilePath, ?string $explicityStrategy = null): void
     {
         $this->logger->info(
-            'Generating builder class for {built_class} using {strategy} strategy',
-            ['built_class' => $builtClassFilePath, 'strategy' => $explicityStrategy ?: 'automatic']
+            'Generating builder class for {builtClass} using {strategy} strategy',
+            [
+                'builtClass' => $builtClassFilePath,
+                'strategy' => $explicityStrategy ?: 'automatic'
+            ]
         );
 
         $builderClassFilePath = $this->fs->writeNear(
@@ -76,6 +79,6 @@ final class FileBuilderGenerator
             )
         );
 
-        $this->logger->info('Builder class generated in {builder_class}', ['builder_class' => $builderClassFilePath]);
+        $this->logger->info('Builder class generated in {builderClass}', ['builderClass' => $builderClassFilePath]);
     }
 }

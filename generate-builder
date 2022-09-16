@@ -40,6 +40,8 @@ $generate = function (InputInterface $input, OutputInterface $output) {
 };
 
 (new SingleCommandApplication())
+    ->setName('generate-builder')
+    ->setVersion('2.x')
     ->addArgument('filepath', InputArgument::REQUIRED, 'The filepath to the class you want to generate a builder on')
     ->addOption(
         'strategy',

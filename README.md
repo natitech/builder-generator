@@ -8,7 +8,7 @@ PHP standalone library to generate a [builder pattern](https://en.wikipedia.org/
 
 By using composer on your project or globally
 
-```
+```shell script
 composer require natitech/builder-generator
 composer global require natitech/builder-generator
 ```
@@ -249,6 +249,15 @@ class MyClassBuilder {
 }
 ```
 
+### Custom strategy / contributions
+
+To create a custom strategy :
+* you need to implement ```Nati\BuilderGenerator\Property\PropertyBuildStrategy``` 
+and add it to ```Nati\BuilderGenerator\Property\PropertyBuildStrategyCollection```. 
+This will decide HOW properties are built. 
+* you also need to complete ```\Nati\BuilderGenerator\Analyzer\BuildableClassAnalyzer::getWriteStrategies()```. 
+This will decide WHEN properties could be built with this strategy. 
+
 ## IDE / PHPStorm
 
 You can use this tool as an external tool in your IDE. 
@@ -256,6 +265,6 @@ You can use this tool as an external tool in your IDE.
 For PHPStorm user, see https://www.jetbrains.com/help/phpstorm/configuring-third-party-tools.html. Example configuration :
 * Name : Generate builder
 * Description : Generate a builder class from a PHP class
-* Program [if global installation, fix full path] : /path/to/your/home/.composer/vendor/bin/generate-builder 
+* Program : /path/to/your/home/.composer/vendor/bin/generate-builder 
 * Arguments : $FilePath$
 * Working directory : $FileDir$ 
