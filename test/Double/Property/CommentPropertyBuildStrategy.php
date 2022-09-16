@@ -7,6 +7,11 @@ use Nati\BuilderGenerator\Property\PropertyBuildStrategy;
 
 final class CommentPropertyBuildStrategy implements PropertyBuildStrategy
 {
+    public function getShortName(): string
+    {
+        return 'comment';
+    }
+
     public function getBuildFunctionBody(BuildableClass $class): string
     {
         return sprintf('//CommentPropertyBuildStrategy with %d properties', count($class->properties));

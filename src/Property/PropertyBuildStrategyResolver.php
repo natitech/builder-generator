@@ -5,7 +5,7 @@ namespace Nati\BuilderGenerator\Property;
 interface PropertyBuildStrategyResolver
 {
     /**
-     * @throws \InvalidArgumentException when $strategyClass can not be created
+     * @throws \InvalidArgumentException when $strategyShortName is not found
      */
-    public function resolveStrategy(string $strategyClass): PropertyBuildStrategy;
+    public function resolve(string $strategyShortName): PropertyBuildStrategy;
 }

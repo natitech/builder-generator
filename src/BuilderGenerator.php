@@ -25,22 +25,22 @@ final class BuilderGenerator
         $this->printer          = new PsrPrinter();
     }
 
-    public function getBuilderClassContent(BuildableClass $buildableClass): string
+    public function getBuilderClassContent(BuildableClass $buildableClass, ?string $strategy): string
     {
-        $mostUsedStrategy = $this->getMostUsedStrategyClassAmong($buildableClass->properties);
+        $strategy = $strategy ?: $this->getMostUsedStrategyClassAmong($buildableClass->properties);
 
-        $this->init($buildableClass, $mostUsedStrategy);
+        $this->init($buildableClass, $strategy);
         $this->addProperties();
         $this->addConstructor();
-        $this->addBuildMethod($mostUsedStrategy);
+        $this->addBuildMethod($strategy);
 
         return $this->dump();
     }
 
-    private function init(BuildableClass $buildableClass, ?string $mostUsedStrategy): void
+    private function init(BuildableClass $buildableClass, ?string $strategy): void
     {
         $this->builtClass             = clone $buildableClass;
-        $this->builtClass->properties = $this->getPropertiesThatSupport($buildableClass->properties, $mostUsedStrategy);
+        $this->builtClass->properties = $this->getPropertiesThatSupport($buildableClass->properties, $strategy);
 
         $this->builderClass = new ClassType($this->builtClass->name . 'Builder');
         $this->builderClass->setFinal();
@@ -72,11 +72,11 @@ final class BuilderGenerator
                            ->setType(Generator::class);
     }
 
-    private function addBuildMethod(?string $mostUsedStrategy): void
+    private function addBuildMethod(?string $strategy): void
     {
         $this->builderClass->addMethod('build')
                            ->setReturnType($this->getBuiltClassFQN())
-                           ->addBody($this->getBuildFunctionBody($this->builtClass, $mostUsedStrategy));
+                           ->addBody($this->getBuildFunctionBody($this->builtClass, $strategy));
     }
 
     private function dump(): string
@@ -96,13 +96,13 @@ final class BuilderGenerator
         return $namespace;
     }
 
-    private function getBuildFunctionBody(BuildableClass $builtClass, $strategy): string
+    private function getBuildFunctionBody(BuildableClass $builtClass, ?string $strategy): string
     {
-        if (!$builtClass->properties) {
+        if (!$strategy) {
             return 'return new ' . $builtClass->name . '();';
         }
 
-        return $this->strategyResolver->resolveStrategy($strategy)
+        return $this->strategyResolver->resolve($strategy)
                                       ->getBuildFunctionBody($builtClass);
     }
 

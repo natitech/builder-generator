@@ -3,17 +3,22 @@
 namespace Nati\BuilderGenerator\Test\Unit;
 
 use Nati\BuilderGenerator\BuilderGenerator;
+use Nati\BuilderGenerator\Test\Double\Property\CommentPropertyBuildStrategy;
 use Nati\BuilderGenerator\Test\Double\Property\PropertyBuildStrategyResolverMock;
 
 class BuilderGeneratorTest extends UnitTest
 {
     private BuilderGenerator $generator;
 
+    private PropertyBuildStrategyResolverMock $strategyResolver;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->generator = new BuilderGenerator(new PropertyBuildStrategyResolverMock());
+        $this->strategyResolver = new PropertyBuildStrategyResolverMock();
+
+        $this->generator = new BuilderGenerator($this->strategyResolver);
     }
 
     /**
@@ -23,7 +28,7 @@ class BuilderGeneratorTest extends UnitTest
     {
         $this->assertBuilderClassCodeContains(
             'class TestPublicBuilder',
-            $this->generator->getBuilderClassContent($this->makeClass([]))
+            $this->generator->getBuilderClassContent($this->makeClass([]), null)
         );
     }
 
@@ -54,7 +59,7 @@ class BuilderGeneratorTest extends UnitTest
      */
     public function canAddProperties()
     {
-        $property = $this->makeProperty();
+        $property               = $this->makeProperty();
         $property->inferredType = null;
 
         $this->assertBuilderClassCodeContains('private $prop1;', $this->getBuilderClassContent([$property]));
@@ -96,8 +101,10 @@ class BuilderGeneratorTest extends UnitTest
     /**
      * @test
      */
-    public function canUseMostUsedStrategyOnRelevantProperties()
+    public function canUseStrategyOnRelevantProperties()
     {
+        $this->strategyResolver->setStrategy(new CommentPropertyBuildStrategy());
+
         $builderClassContent = $this->getBuilderClassContent(
             [
                 $this->makeProperty('prop1', $this->mixedStrategies()),
@@ -128,7 +135,7 @@ class BuilderGeneratorTest extends UnitTest
 
     private function getBuilderClassContent(array $properties = []): string
     {
-        return $this->generator->getBuilderClassContent($this->makeFullClass($properties));
+        return $this->generator->getBuilderClassContent($this->makeFullClass($properties), null);
     }
 
     private function spaceless(string $expected): string

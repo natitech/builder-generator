@@ -1,8 +1,8 @@
 <?php
 
-namespace Nati\BuilderGenerator\Test\Unit\Property;
+namespace Nati\BuilderGenerator\Test\Unit\Property\BuildStrategy;
 
-use Nati\BuilderGenerator\Property\FluentSetterPropertyBuildStrategy;
+use Nati\BuilderGenerator\Property\BuildStrategy\FluentSetterPropertyBuildStrategy;
 use Nati\BuilderGenerator\Test\Unit\UnitTest;
 
 class FluentSetterPropertyBuildStrategyTest extends UnitTest

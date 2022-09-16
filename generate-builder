@@ -19,6 +19,7 @@ require findAutoload();
 use Nati\BuilderGenerator\FileBuilderGenerator;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\SingleCommandApplication;
 use Symfony\Component\Console\Style\SymfonyStyle;
@@ -26,9 +27,12 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 $generate = function (InputInterface $input, OutputInterface $output) {
     $io       = new SymfonyStyle($input, $output);
     $filepath = $input->getArgument('filepath');
+    $strategy = $input->getOption('strategy');
+
+    $io->writeln('Use "' . ($strategy ?: 'automatic') . '" strategy');
 
     try {
-        FileBuilderGenerator::create()->generateFrom($filepath);
+        FileBuilderGenerator::create()->generateFrom($filepath, $strategy);
     } catch (Throwable $e) {
         $io->getErrorStyle()->error('Error while generating builder, ' . $e->getMessage());
         exit(1);
@@ -37,7 +41,17 @@ $generate = function (InputInterface $input, OutputInterface $output) {
     $io->writeln('Builder class generated near ' . $filepath);
 };
 
+$possibles = FileBuilderGenerator::strategies()->shortnames();
+
 (new SingleCommandApplication())
     ->addArgument('filepath', InputArgument::REQUIRED, 'The filepath to the class you want to generate a builder on')
+    ->addOption(
+        'strategy',
+        null,
+        InputOption::VALUE_REQUIRED,
+        sprintf('Strategy used to build class among "%s" - will be automatically detected if none', implode('", "', $possibles)),
+        null,
+        $possibles
+    )
     ->setCode($generate)
     ->run();

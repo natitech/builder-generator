@@ -2,6 +2,9 @@
 
 namespace Nati\BuilderGenerator\Driver;
 
+/**
+ * @codeCoverageIgnore
+ */
 final class Filesystem
 {
     public function read(string $filePath): string

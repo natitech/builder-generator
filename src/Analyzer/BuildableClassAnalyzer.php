@@ -3,11 +3,6 @@
 namespace Nati\BuilderGenerator\Analyzer;
 
 use Nati\BuilderGenerator\Driver\PhpDocParser;
-use Nati\BuilderGenerator\Property\ConstructorPropertyBuildStrategy;
-use Nati\BuilderGenerator\Property\FluentSetterPropertyBuildStrategy;
-use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
-use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
-use Nati\BuilderGenerator\Property\StaticBuildMethodPropertyBuildStrategy;
 use PhpParser\Error;
 use PhpParser\ErrorHandler\Throwing;
 use PhpParser\Node;
@@ -239,21 +234,19 @@ final class BuildableClassAnalyzer
         $writeStrategies = [];
 
         if ($propertyNode->isPublic()) {
-            $writeStrategies[] = PublicPropertyBuildStrategy::class;
+            $writeStrategies[] = 'public';
         }
 
         if ($setter = $this->getSetterForProperty($propertyName)) {
-            $writeStrategies[] = $this->isFluent($setter) ?
-                FluentSetterPropertyBuildStrategy::class :
-                NonFluentSetterPropertyBuildStrategy::class;
+            $writeStrategies[] = $this->isFluent($setter) ? 'fluent_setter' : 'setter';
         }
 
         if ($constructorInitializationPosition !== null) {
-            $writeStrategies[] = ConstructorPropertyBuildStrategy::class;
+            $writeStrategies[] = 'constructor';
         }
 
         if (!$writeStrategies) {
-            $writeStrategies[] = StaticBuildMethodPropertyBuildStrategy::class;
+            $writeStrategies[] = 'build_method';
         }
 
         return $writeStrategies;

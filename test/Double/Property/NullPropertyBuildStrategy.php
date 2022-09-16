@@ -7,6 +7,11 @@ use Nati\BuilderGenerator\Property\PropertyBuildStrategy;
 
 final class NullPropertyBuildStrategy implements PropertyBuildStrategy
 {
+    public function getShortName(): string
+    {
+        return 'null';
+    }
+
     public function getBuildFunctionBody(BuildableClass $class): string
     {
         return 'return null;';

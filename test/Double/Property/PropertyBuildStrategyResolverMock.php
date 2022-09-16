@@ -7,8 +7,22 @@ use Nati\BuilderGenerator\Property\PropertyBuildStrategyResolver;
 
 final class PropertyBuildStrategyResolverMock implements PropertyBuildStrategyResolver
 {
-    public function resolveStrategy(string $strategyClass): PropertyBuildStrategy
+    private PropertyBuildStrategy $strategy;
+
+    public function __construct()
     {
-        return new $strategyClass();
+        $this->strategy  = new NullPropertyBuildStrategy();
+    }
+
+    public function resolve(string $strategyShortName): PropertyBuildStrategy
+    {
+        return $this->strategy;
+    }
+
+    public function setStrategy(PropertyBuildStrategy $strategy): self
+    {
+        $this->strategy = $strategy;
+
+        return $this;
     }
 }

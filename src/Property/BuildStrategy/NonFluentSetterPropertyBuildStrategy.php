@@ -1,22 +1,28 @@
 <?php
 
-namespace Nati\BuilderGenerator\Property;
+namespace Nati\BuilderGenerator\Property\BuildStrategy;
 
 use Nati\BuilderGenerator\Analyzer\BuildableClass;
+use Nati\BuilderGenerator\Property\PropertyBuildStrategy;
 
-final class FluentSetterPropertyBuildStrategy implements PropertyBuildStrategy
+final class NonFluentSetterPropertyBuildStrategy implements PropertyBuildStrategy
 {
+    public function getShortName(): string
+    {
+        return 'setter';
+    }
+
     public function getBuildFunctionBody(BuildableClass $class): string
     {
         $this->guardUnusableConstructor($class);
 
-        $buildBody = 'return (new ' . $class->name . '())';
+        $buildBody = '$built = new ' . $class->name . '();';
 
         foreach ($class->properties as $property) {
-            $buildBody .= "\n" . sprintf('->set%s($this->%s)', ucfirst($property->name), $property->name);
+            $buildBody .= "\n" . sprintf('$built->set%s($this->%s);', ucfirst($property->name), $property->name);
         }
 
-        $buildBody .= ';';
+        $buildBody .= "\n\n" . 'return $built;';
 
         return $buildBody;
     }

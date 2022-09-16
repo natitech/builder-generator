@@ -1,11 +1,17 @@
 <?php
 
-namespace Nati\BuilderGenerator\Property;
+namespace Nati\BuilderGenerator\Property\BuildStrategy;
 
 use Nati\BuilderGenerator\Analyzer\BuildableClass;
+use Nati\BuilderGenerator\Property\PropertyBuildStrategy;
 
 final class ConstructorPropertyBuildStrategy implements PropertyBuildStrategy
 {
+    public function getShortName(): string
+    {
+        return 'constructor';
+    }
+
     public function getBuildFunctionBody(BuildableClass $class): string
     {
         $this->guardUnusableConstructor($class);

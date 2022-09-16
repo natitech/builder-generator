@@ -1,8 +1,8 @@
 <?php
 
-namespace Nati\BuilderGenerator\Test\Unit\Property;
+namespace Nati\BuilderGenerator\Test\Unit\Property\BuildStrategy;
 
-use Nati\BuilderGenerator\Property\ConstructorPropertyBuildStrategy;
+use Nati\BuilderGenerator\Property\BuildStrategy\ConstructorPropertyBuildStrategy;
 use Nati\BuilderGenerator\Test\Unit\UnitTest;
 
 class ConstructorPropertyBuildStrategyTest extends UnitTest

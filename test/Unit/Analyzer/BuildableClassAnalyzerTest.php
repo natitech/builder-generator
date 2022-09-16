@@ -2,12 +2,8 @@
 
 namespace Nati\BuilderGenerator\Test\Unit\Analyzer;
 
+use Nati\BuilderGenerator\Analyzer\BuildableClass;
 use Nati\BuilderGenerator\Analyzer\BuildableClassAnalyzer;
-use Nati\BuilderGenerator\Property\ConstructorPropertyBuildStrategy;
-use Nati\BuilderGenerator\Property\FluentSetterPropertyBuildStrategy;
-use Nati\BuilderGenerator\Property\NonFluentSetterPropertyBuildStrategy;
-use Nati\BuilderGenerator\Property\PublicPropertyBuildStrategy;
-use Nati\BuilderGenerator\Property\StaticBuildMethodPropertyBuildStrategy;
 use Nati\BuilderGenerator\Test\Unit\UnitTest;
 
 class BuildableClassAnalyzerTest extends UnitTest
@@ -75,11 +71,7 @@ class BuildableClassAnalyzerTest extends UnitTest
             '<?php namespace MyNs\Test; class MyClass{public $prop1;}'
         );
 
-        $this->assertCount(1, $buildableClass->properties);
-        $this->assertEquals(
-            [PublicPropertyBuildStrategy::class],
-            $buildableClass->properties[0]->writeStrategies
-        );
+        $this->assertWriteStrategyIs('public', $buildableClass);
     }
 
     /**
@@ -91,11 +83,7 @@ class BuildableClassAnalyzerTest extends UnitTest
             '<?php namespace MyNs\Test; class MyClass{private $prop1; public function setProp1($prop1) { $this->prop1 = $prop1; }}'
         );
 
-        $this->assertCount(1, $buildableClass->properties);
-        $this->assertContains(
-            NonFluentSetterPropertyBuildStrategy::class,
-            $buildableClass->properties[0]->writeStrategies
-        );
+        $this->assertWriteStrategyIs('setter', $buildableClass);
     }
 
     /**
@@ -107,11 +95,7 @@ class BuildableClassAnalyzerTest extends UnitTest
             '<?php namespace MyNs\Test; class MyClass{private $prop1; public function setProp1($prop1) { $this->prop1 = $prop1; return $this; }}'
         );
 
-        $this->assertCount(1, $buildableClass->properties);
-        $this->assertContains(
-            FluentSetterPropertyBuildStrategy::class,
-            $buildableClass->properties[0]->writeStrategies
-        );
+        $this->assertWriteStrategyIs('fluent_setter', $buildableClass);
     }
 
     /**
@@ -123,11 +107,8 @@ class BuildableClassAnalyzerTest extends UnitTest
             '<?php namespace MyNs\Test; class MyClass{private $prop1; public function setProp1($prop1) { $this->prop1 = $prop1; } public function __construct($prop1) { $this->prop1 = $prop1; }}'
         );
 
-        $this->assertCount(1, $buildableClass->properties);
-        $this->assertContains(
-            ConstructorPropertyBuildStrategy::class,
-            $buildableClass->properties[0]->writeStrategies
-        );
+        $expextedStrategy = 'constructor';
+        $this->assertWriteStrategyIs($expextedStrategy, $buildableClass);
         $this->assertSame(0, $buildableClass->properties[0]->constructorOrder);
         $this->assertEquals(1, $buildableClass->nbConstructorArgs);
     }
@@ -141,11 +122,7 @@ class BuildableClassAnalyzerTest extends UnitTest
             '<?php namespace MyNs\Test; class MyClass{private $prop1;}'
         );
 
-        $this->assertCount(1, $buildableClass->properties);
-        $this->assertContains(
-            StaticBuildMethodPropertyBuildStrategy::class,
-            $buildableClass->properties[0]->writeStrategies
-        );
+        $this->assertWriteStrategyIs('build_method', $buildableClass);
     }
 
     /**
@@ -207,5 +184,11 @@ class BuildableClassAnalyzerTest extends UnitTest
         foreach ($buildableClass->properties as $property) {
             $this->assertEquals('string', $property->inferredType, $property->name . ' not a string');
         }
+    }
+
+    private function assertWriteStrategyIs(string $expextedStrategy, BuildableClass $buildableClass): void
+    {
+        $this->assertCount(1, $buildableClass->properties);
+        $this->assertContains($expextedStrategy, $buildableClass->properties[0]->writeStrategies);
     }
 }
