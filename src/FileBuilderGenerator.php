@@ -10,6 +10,8 @@ use Nati\BuilderGenerator\Property\BuildStrategy\NonFluentSetterPropertyBuildStr
 use Nati\BuilderGenerator\Property\BuildStrategy\PublicPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\BuildStrategy\StaticBuildMethodPropertyBuildStrategy;
 use Nati\BuilderGenerator\Property\PropertyBuildStrategyCollection;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 final class FileBuilderGenerator
 {
@@ -19,20 +21,30 @@ final class FileBuilderGenerator
 
     private BuilderGenerator $generator;
 
-    public function __construct(Filesystem $fs, BuildableClassAnalyzer $classAnalyzer, BuilderGenerator $generator)
-    {
+    private LoggerInterface $logger;
+
+    public function __construct(
+        Filesystem $fs,
+        BuildableClassAnalyzer $classAnalyzer,
+        BuilderGenerator $generator,
+        LoggerInterface $logger
+    ) {
         $this->fs            = $fs;
         $this->classAnalyzer = $classAnalyzer;
         $this->generator     = $generator;
+        $this->logger        = $logger;
     }
 
     /** @api */
-    public static function create(): self
+    public static function create(?LoggerInterface $logger = null): self
     {
+        $logger = $logger ?: new NullLogger();
+
         return new self(
             new Filesystem(),
-            new BuildableClassAnalyzer(),
-            new BuilderGenerator(self::strategies())
+            new BuildableClassAnalyzer($logger),
+            new BuilderGenerator(self::strategies(), $logger),
+            $logger
         );
     }
 
@@ -48,15 +60,22 @@ final class FileBuilderGenerator
     }
 
     /** @api */
-    public function generateFrom(string $classFilePath, ?string $explicityStrategy = null): void
+    public function generateFrom(string $builtClassFilePath, ?string $explicityStrategy = null): void
     {
-        $this->fs->writeNear(
-            $classFilePath,
+        $this->logger->info(
+            'Generating builder class for {built_class} using {strategy} strategy',
+            ['built_class' => $builtClassFilePath, 'strategy' => $explicityStrategy ?: 'automatic']
+        );
+
+        $builderClassFilePath = $this->fs->writeNear(
+            $builtClassFilePath,
             'Builder',
             $this->generator->getBuilderClassContent(
-                $this->classAnalyzer->analyse($this->fs->read($classFilePath)),
+                $this->classAnalyzer->analyse($this->fs->read($builtClassFilePath)),
                 $explicityStrategy
             )
         );
+
+        $this->logger->info('Builder class generated in {builder_class}', ['builder_class' => $builderClassFilePath]);
     }
 }

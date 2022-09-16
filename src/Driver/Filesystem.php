@@ -11,12 +11,24 @@ final class Filesystem
     {
         $this->guardExists($filePath);
 
-        return file_get_contents($filePath);
+        $content = file_get_contents($filePath);
+
+        if (!$content) {
+            throw new \InvalidArgumentException('Cant read ' . $filePath);
+        }
+
+        return $content;
     }
 
-    public function writeNear(string $filePath, string $suffix, string $content): void
+    public function writeNear(string $filePath, string $suffix, string $content): string
     {
-        file_put_contents($this->makeNewFilePath($this->guardExists($filePath), $suffix), $content);
+        $newFilePath = $this->makeNewFilePath($this->guardExists($filePath), $suffix);
+
+        if (!file_put_contents($newFilePath, $content)) {
+            throw new \InvalidArgumentException('Cant write to ' . $newFilePath);
+        }
+
+        return $newFilePath;
     }
 
     private function guardExists(string $filePath): \SplFileInfo

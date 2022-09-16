@@ -14,7 +14,7 @@ class BuildableClassAnalyzerTest extends UnitTest
     {
         parent::setUp();
 
-        $this->analyzer = new BuildableClassAnalyzer();
+        $this->analyzer = new BuildableClassAnalyzer($this->logger());
     }
 
     /**

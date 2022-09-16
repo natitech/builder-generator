@@ -18,7 +18,7 @@ class BuilderGeneratorTest extends UnitTest
 
         $this->strategyResolver = new PropertyBuildStrategyResolverMock();
 
-        $this->generator = new BuilderGenerator($this->strategyResolver);
+        $this->generator = new BuilderGenerator($this->strategyResolver, $this->logger());
     }
 
     /**

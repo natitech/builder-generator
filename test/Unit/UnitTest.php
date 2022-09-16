@@ -4,9 +4,9 @@ namespace Nati\BuilderGenerator\Test\Unit;
 
 use Nati\BuilderGenerator\Analyzer\BuildableClass;
 use Nati\BuilderGenerator\Analyzer\BuildableProperty;
-use Nati\BuilderGenerator\Test\Double\Property\CommentPropertyBuildStrategy;
-use Nati\BuilderGenerator\Test\Double\Property\NullPropertyBuildStrategy;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 abstract class UnitTest extends TestCase
 {
@@ -48,11 +48,16 @@ abstract class UnitTest extends TestCase
 
     protected function nullStrategies(): array
     {
-        return [NullPropertyBuildStrategy::class];
+        return ['null'];
     }
 
     protected function commentStrategies(): array
     {
-        return [CommentPropertyBuildStrategy::class];
+        return ['comment'];
+    }
+
+    protected function logger(): LoggerInterface
+    {
+        return new NullLogger();
     }
 }

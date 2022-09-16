@@ -20,28 +20,24 @@ use Nati\BuilderGenerator\FileBuilderGenerator;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\SingleCommandApplication;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+$strategies = FileBuilderGenerator::strategies()->shortnames();
+
 $generate = function (InputInterface $input, OutputInterface $output) {
-    $io       = new SymfonyStyle($input, $output);
-    $filepath = $input->getArgument('filepath');
-    $strategy = $input->getOption('strategy');
-
-    $io->writeln('Use "' . ($strategy ?: 'automatic') . '" strategy');
-
     try {
-        FileBuilderGenerator::create()->generateFrom($filepath, $strategy);
+        FileBuilderGenerator::create(new ConsoleLogger($output))
+                            ->generateFrom($input->getArgument('filepath'), $input->getOption('strategy'));
     } catch (Throwable $e) {
-        $io->getErrorStyle()->error('Error while generating builder, ' . $e->getMessage());
+        (new SymfonyStyle($input, $output))
+            ->getErrorStyle()
+            ->error('Error while generating builder, ' . $e->getMessage());
         exit(1);
     }
-
-    $io->writeln('Builder class generated near ' . $filepath);
 };
-
-$possibles = FileBuilderGenerator::strategies()->shortnames();
 
 (new SingleCommandApplication())
     ->addArgument('filepath', InputArgument::REQUIRED, 'The filepath to the class you want to generate a builder on')
@@ -49,9 +45,12 @@ $possibles = FileBuilderGenerator::strategies()->shortnames();
         'strategy',
         null,
         InputOption::VALUE_REQUIRED,
-        sprintf('Strategy used to build class among "%s" - will be automatically detected if none', implode('", "', $possibles)),
+        sprintf(
+            'Strategy used to build class among "%s" - will be automatically detected if none',
+            implode('", "', $strategies)
+        ),
         null,
-        $possibles
+        $strategies
     )
     ->setCode($generate)
     ->run();

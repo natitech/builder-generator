@@ -15,6 +15,7 @@ use PhpParser\Node\Stmt\Return_;
 use PhpParser\NodeFinder;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
+use Psr\Log\LoggerInterface;
 
 final class BuildableClassAnalyzer
 {
@@ -39,6 +40,8 @@ final class BuildableClassAnalyzer
 
     private PhpDocParser $docParser;
 
+    private LoggerInterface $logger;
+
     /** @var Node\Stmt[] */
     private array $ast;
 
@@ -49,11 +52,12 @@ final class BuildableClassAnalyzer
 
     private BuildableClass $analysis;
 
-    public function __construct()
+    public function __construct(LoggerInterface $logger)
     {
         $this->phpParser  = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
         $this->nodeFinder = new NodeFinder();
         $this->docParser  = new PhpDocParser();
+        $this->logger     = $logger;
     }
 
     /**
@@ -131,28 +135,28 @@ final class BuildableClassAnalyzer
         return null;
     }
 
-    private function makeBuildableProperty(Property $propertyNode): ?BuildableProperty
+    private function makeBuildableProperty(Property $node): ?BuildableProperty
     {
-        if (!($propertyName = (string)($propertyNode->props[0]->name ?? null))) {
+        if (!($name = (string)($node->props[0]->name ?? null))) {
             return null;
         }
 
         $constructorInitializationPosition = $this->getConstructorInitializationPosition(
-            $propertyName,
+            $name,
             $this->getConstructorNode()
         );
 
         $property                   = new BuildableProperty();
-        $property->name             = $propertyName;
-        $property->inferredType     = $this->inferType($propertyNode, $constructorInitializationPosition);
-        $property->inferredFake     = $this->inferFake($propertyName, $property->inferredType);
+        $property->name             = $name;
+        $property->inferredType     = $this->inferType($name, $node, $constructorInitializationPosition);
+        $property->inferredFake     = $this->inferFake($name, $property->inferredType);
         $property->constructorOrder = $constructorInitializationPosition;
-        $property->writeStrategies  = $this->getWriteStrategies($propertyNode, $constructorInitializationPosition);
+        $property->writeStrategies  = $this->getWriteStrategies($name, $node, $constructorInitializationPosition);
 
         return $property;
     }
 
-    private function getConstructorInitializationPosition(string $propertyName, $constructorNode): ?int
+    private function getConstructorInitializationPosition(string $name, $constructorNode): ?int
     {
         if ($constructorNode
             && ($constructorArgs = $this->getConstructorArgs())
@@ -161,7 +165,7 @@ final class BuildableClassAnalyzer
                 $assigned = ((string)($assignment->var->var->name ?? null)) . ((string)($assignment->var->name ?? null));
                 $to       = (string)($assignment->expr->name ?? null);
 
-                if (($assigned === 'this' . $propertyName) && in_array($to, $constructorArgs, true)) {
+                if (($assigned === 'this' . $name) && in_array($to, $constructorArgs, true)) {
                     return array_search($to, $constructorArgs, true);
                 }
             }
@@ -170,54 +174,62 @@ final class BuildableClassAnalyzer
         return null;
     }
 
-    private function inferType(Property $propertyNode, ?int $constructorInitializationPosition): ?string
+    private function inferType(string $name, Property $node, ?int $constructorInitializationPosition): ?string
     {
-        if ($type = $propertyNode->type) {
+        if ($type = $node->type) {
+            $this->logger->debug('Found type from php for {name}', ['name' => $name]);
+
             return $type instanceof Node\NullableType ? $type->type->toString() : $type->toString();
         }
 
-        if ($type = $this->getTypeFromAttributes($propertyNode)) {
+        if ($type = $this->getTypeFromAttributes($node)) {
+            $this->logger->debug('Found type from attributes for {name}', ['name' => $name]);
+
             return $type;
         }
 
-        if (($comments = $propertyNode->getComments())
+        if (($comments = $node->getComments())
             && ($type = $this->docParser->getType((string)$comments[0]))) {
+            $this->logger->debug('Found type from phpdoc for {name}', ['name' => $name]);
+
             return $this->toPhpType($this->cleanNullable($type));
         }
 
         if ($constructorInitializationPosition !== null) {
+            $this->logger->debug('Found type from constructor for {name}', ['name' => $name]);
+
             return $this->getConstructorArgumentType($constructorInitializationPosition);
         }
 
         return null;
     }
 
-    private function inferFake(string $propertyName, ?string $propertyType): ?string
+    private function inferFake(string $name, ?string $type): ?string
     {
-        if (!$propertyType || !$this->isFakeSupportedType($propertyType)) {
+        if (!$type || !$this->isFakeSupportedType($type)) {
+            $this->logger->debug('No fake supported for {name}', ['name' => $name]);
+
             return null;
         }
 
-        if ($propertyType === 'string') {
-            return $this->guessStringFakeFunction($propertyName);
+        if ($type === 'string') {
+            return $this->guessStringFakeFunction($name);
         }
 
-        if ($propertyType === 'float') {
+        if ($type === 'float') {
             return '$faker->randomFloat()';
         }
 
-        if ($propertyType === 'int' || $propertyType === 'integer') {
+        if ($type === 'int' || $type === 'integer') {
             return '$faker->randomNumber()';
         }
 
-        if ($propertyType === 'boolean'
-            || $propertyType === 'bool'
-            || (!$propertyType && preg_match('/^is[_A-Z]/', $propertyName))) {
+        if ($type === 'boolean' || $type === 'bool' || (!$type && preg_match('/^is[_A-Z]/', $name))) {
             return '$faker->boolean';
         }
 
-        if (stripos($propertyType, 'date') !== false) {
-            if (stripos($propertyType, 'immutable') !== false) {
+        if (stripos($type, 'date') !== false) {
+            if (stripos($type, 'immutable') !== false) {
                 return '\DateTimeImmutable::createFromMutable($faker->dateTime)';
             }
 
@@ -227,17 +239,18 @@ final class BuildableClassAnalyzer
         return null;
     }
 
-    private function getWriteStrategies(Property $propertyNode, ?int $constructorInitializationPosition): array
-    {
-        $propertyName = (string)($propertyNode->props[0]->name ?? null);
-
+    private function getWriteStrategies(
+        string $name,
+        Property $propertyNode,
+        ?int $constructorInitializationPosition
+    ): array {
         $writeStrategies = [];
 
         if ($propertyNode->isPublic()) {
             $writeStrategies[] = 'public';
         }
 
-        if ($setter = $this->getSetterForProperty($propertyName)) {
+        if ($setter = $this->getSetterForProperty($name)) {
             $writeStrategies[] = $this->isFluent($setter) ? 'fluent_setter' : 'setter';
         }
 
@@ -249,12 +262,17 @@ final class BuildableClassAnalyzer
             $writeStrategies[] = 'build_method';
         }
 
+        $this->logger->debug(
+            'Found {strategies} write strategies for {name}',
+            ['strategies' => count($writeStrategies), 'name' => $name]
+        );
+
         return $writeStrategies;
     }
 
-    private function getSetterForProperty(string $propertyName): ?ClassMethod
+    private function getSetterForProperty(string $name): ?ClassMethod
     {
-        return $this->findMethod('set' . ucfirst($propertyName));
+        return $this->findMethod('set' . ucfirst($name));
     }
 
     private function isFluent(ClassMethod $method): bool
@@ -287,7 +305,7 @@ final class BuildableClassAnalyzer
         return $this->getMethodArgNames($this->getConstructorNode());
     }
 
-    private function getMethodArgNames($methodNode): array
+    private function getMethodArgNames(?ClassMethod $methodNode): array
     {
         if (!$methodNode) {
             return [];

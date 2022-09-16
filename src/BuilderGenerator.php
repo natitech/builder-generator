@@ -8,6 +8,7 @@ use Nati\BuilderGenerator\Property\PropertyBuildStrategyResolver;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PsrPrinter;
+use Psr\Log\LoggerInterface;
 
 final class BuilderGenerator
 {
@@ -19,17 +20,20 @@ final class BuilderGenerator
 
     private PsrPrinter $printer;
 
-    public function __construct(PropertyBuildStrategyResolver $strategyResolver)
+    private LoggerInterface $logger;
+
+    public function __construct(PropertyBuildStrategyResolver $strategyResolver, LoggerInterface $logger)
     {
         $this->strategyResolver = $strategyResolver;
         $this->printer          = new PsrPrinter();
+        $this->logger           = $logger;
     }
 
-    public function getBuilderClassContent(BuildableClass $buildableClass, ?string $strategy): string
+    public function getBuilderClassContent(BuildableClass $builtClass, ?string $strategy): string
     {
-        $strategy = $strategy ?: $this->getMostUsedStrategyClassAmong($buildableClass->properties);
+        $strategy = $strategy ?: $this->getMostUsedStrategyClassAmong($builtClass->properties);
 
-        $this->init($buildableClass, $strategy);
+        $this->init($builtClass, $strategy);
         $this->addProperties();
         $this->addConstructor();
         $this->addBuildMethod($strategy);
@@ -109,6 +113,8 @@ final class BuilderGenerator
     private function getMostUsedStrategyClassAmong(array $properties): ?string
     {
         if (!$properties) {
+            $this->logger->warning('No properties found inside class');
+
             return null;
         }
 
@@ -120,7 +126,11 @@ final class BuilderGenerator
             }
         }
 
-        return array_search(max($counts), $counts, true);
+        $mostUsedStrategy = array_search(max($counts), $counts, true);
+
+        $this->logger->info('Most used strategy found is {strategy}', ['strategy' => $mostUsedStrategy]);
+
+        return $mostUsedStrategy;
     }
 
     private function getPropertiesThatSupport(array $properties, ?string $mostUsedStrategy): array
