@@ -63,6 +63,21 @@ PHPDOC
         );
     }
 
+    /**
+     * @test
+     */
+    public function whenDoctrineORMDefaultTypeThenReturnString()
+    {
+        $this->assertTypeIs(
+            'string',
+            <<<PHPDOC
+/**
+ * @ORM\Column
+ */
+PHPDOC
+        );
+    }
+
     private function assertTypeIs($expectedType, string $phpdoc): void
     {
         $this->assertEquals($expectedType, $this->parser->getType($phpdoc));

@@ -33,7 +33,7 @@ final class PhpDocParser
                 return (string)$child->value->type;
             }
 
-            if (isset($child->name) && $child->name === '@ORM') {
+            if (isset($child->name) && strpos($child->name, '@ORM') !== false) {
                 $ormTypePos = strpos($child->value, 'type="');
                 if ($ormTypePos !== false) {
                     $ormTypePosStart = $ormTypePos + 6;
@@ -46,6 +46,8 @@ final class PhpDocParser
                         )
                     );
                 }
+
+                return 'string';
             }
         }
 
