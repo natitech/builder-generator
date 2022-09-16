@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-function autoload(): ?string
+function findAutoload(): string
 {
     foreach (['/../../autoload.php', '/../vendor/autoload.php', '/vendor/autoload.php'] as $usableFilePath) {
         $fullUsableFilePath = __DIR__ . $usableFilePath;
@@ -10,35 +10,34 @@ function autoload(): ?string
         }
     }
 
-    return null;
-}
-
-if (!($autoloadFilePath = autoload())) {
-    fwrite(STDERR, 'You need to use composer to use generate-builder binary, learn more on https://getcomposer.org/');
+    fwrite(STDERR, 'You need to use composer to use this binary, learn more on https://getcomposer.org/');
     exit(1);
 }
 
-require $autoloadFilePath;
+require findAutoload();
 
 use Nati\BuilderGenerator\FileBuilderGenerator;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\SingleCommandApplication;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
-if (empty($argv[1])) {
-    fwrite(STDERR, 'You must provide a filepath as first argument');
-    exit(1);
-}
+$generate = function (InputInterface $input, OutputInterface $output) {
+    $io       = new SymfonyStyle($input, $output);
+    $filepath = $input->getArgument('filepath');
 
-$filepath = $argv[1];
-
-try {
-    FileBuilderGenerator::create()->generateFrom($filepath);
-} catch (Throwable $e) {
-    $msg = 'Error while generating builder';
-    if ($more = $e->getMessage()) {
-        $msg .= "\n" . $more;
+    try {
+        FileBuilderGenerator::create()->generateFrom($filepath);
+    } catch (Throwable $e) {
+        $io->getErrorStyle()->error('Error while generating builder, ' . $e->getMessage());
+        exit(1);
     }
-    fwrite(STDERR, $msg);
-    exit(1);
-}
 
-fwrite(STDOUT, 'Builder class generated near ' . $filepath);
-exit(0);
+    $io->writeln('Builder class generated near ' . $filepath);
+};
+
+(new SingleCommandApplication())
+    ->addArgument('filepath', InputArgument::REQUIRED, 'The filepath to the class you want to generate a builder on')
+    ->setCode($generate)
+    ->run();
