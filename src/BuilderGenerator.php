@@ -29,13 +29,20 @@ final class BuilderGenerator
         $this->logger           = $logger;
     }
 
-    public function getBuilderClassContent(BuildableClass $builtClass, ?string $strategy): string
-    {
+    public function getBuilderClassContent(
+        BuildableClass $builtClass,
+        ?string $strategy,
+        bool $withFakerSupport
+    ): string {
         $strategy = $strategy ?: $this->getMostUsedStrategyClassAmong($builtClass->properties);
 
         $this->init($builtClass, $strategy);
         $this->addProperties();
-        $this->addConstructor();
+        if ($withFakerSupport) {
+            $this->addFakerConstructor();
+        } else {
+            $this->addConstructor();
+        }
         $this->addBuildMethod($strategy);
 
         return $this->dump();
@@ -59,7 +66,7 @@ final class BuilderGenerator
         }
     }
 
-    private function addConstructor(): void
+    private function addFakerConstructor(): void
     {
         $constructorBody = '';
         foreach ($this->builtClass->properties as $property) {
@@ -74,6 +81,17 @@ final class BuilderGenerator
                            ->addBody($constructorBody)
                            ->addParameter('faker')
                            ->setType(Generator::class);
+    }
+
+    private function addConstructor(): void
+    {
+        $constructorBody = '';
+        foreach ($this->builtClass->properties as $property) {
+            $constructorBody .= "\n" . sprintf('$this->%s = null;', $property->name);
+        }
+
+        $this->builderClass->addMethod('__construct')
+                           ->addBody($constructorBody);
     }
 
     private function addBuildMethod(?string $strategy): void

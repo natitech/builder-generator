@@ -8,14 +8,15 @@
     "nette/php-generator": "^3.2",
     "nikic/php-parser": "^4.2",
     "phpstan/phpdoc-parser": "^1.0",
-    "fakerphp/faker": "^1.8",
     "symfony/console": "^6.1",
     "psr/log": "^1.0 || ^2.0 || ^3.0"
   },
   "require-dev": {
+    "fakerphp/faker": "^1.8",
     "phpunit/phpunit": "^9.0"
   },
   "suggest": {
+    "fakerphp/faker": "To initialize properties with more relevant random data",
     "monolog/monolog": "To display or log more infos on what is done"
   },
   "autoload": {

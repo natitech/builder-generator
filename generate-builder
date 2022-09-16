@@ -30,7 +30,11 @@ $strategies = FileBuilderGenerator::strategies()->shortnames();
 $generate = function (InputInterface $input, OutputInterface $output) {
     try {
         FileBuilderGenerator::create(new ConsoleLogger($output))
-                            ->generateFrom($input->getArgument('filepath'), $input->getOption('strategy'));
+                            ->generateFrom(
+                                $input->getArgument('filepath'),
+                                $input->getOption('strategy'),
+                                (bool)$input->getOption('faker')
+                            );
     } catch (Throwable $e) {
         (new SymfonyStyle($input, $output))
             ->getErrorStyle()
@@ -53,6 +57,13 @@ $generate = function (InputInterface $input, OutputInterface $output) {
         ),
         null,
         $strategies
+    )
+    ->addOption(
+        'faker',
+        null,
+        InputOption::VALUE_NONE,
+        'Use faker to initialize properties with more relevant random data',
+        null
     )
     ->setCode($generate)
     ->run();

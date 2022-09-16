@@ -86,11 +86,13 @@ private function myClass(): MyClassBuilder
 }
 ```
 
-[Faker](https://fakerphp.github.io) is used as a dependency to try to set the most relevant values.
-
 The builder class may need to receive updates on codestyle, faker usages, infered types, namespace, etc. Also, to avoid producing unused code, there are no setters for builder properties. Your IDE should be able to easily fix all of that.
 
 The generator will try to detect property types (php types, phpdoc types, doctrine orm attributes or annotations) and will try to detect the appropriate faker method based on the type and the name of the properties.
+
+## Faker
+
+You can use the --faker option to try to set the most relevant values. In that case, [Faker](https://fakerphp.github.io) will be used as a dependency of the builder class. 
 
 ## Build strategies
 

@@ -28,7 +28,7 @@ class BuilderGeneratorTest extends UnitTest
     {
         $this->assertBuilderClassCodeContains(
             'class TestPublicBuilder',
-            $this->generator->getBuilderClassContent($this->makeClass([]), null)
+            $this->generator->getBuilderClassContent($this->makeClass([]), null, true)
         );
     }
 
@@ -135,7 +135,7 @@ class BuilderGeneratorTest extends UnitTest
 
     private function getBuilderClassContent(array $properties = []): string
     {
-        return $this->generator->getBuilderClassContent($this->makeFullClass($properties), null);
+        return $this->generator->getBuilderClassContent($this->makeFullClass($properties), null, true);
     }
 
     private function spaceless(string $expected): string

@@ -60,13 +60,17 @@ final class FileBuilderGenerator
     }
 
     /** @api */
-    public function generateFrom(string $builtClassFilePath, ?string $explicityStrategy = null): void
-    {
+    public function generateFrom(
+        string $builtClassFilePath,
+        ?string $explicityStrategy = null,
+        bool $withFakerSupport = false
+    ): void {
         $this->logger->info(
-            'Generating builder class for {builtClass} using {strategy} strategy',
+            'Generating builder class for {builtClass} using {strategy} strategy {faker} faker support',
             [
                 'builtClass' => $builtClassFilePath,
-                'strategy' => $explicityStrategy ?: 'automatic'
+                'strategy'   => $explicityStrategy ?: 'automatic',
+                'faker'      => $withFakerSupport ? 'with' : 'without'
             ]
         );
 
@@ -75,7 +79,8 @@ final class FileBuilderGenerator
             'Builder',
             $this->generator->getBuilderClassContent(
                 $this->classAnalyzer->analyse($this->fs->read($builtClassFilePath)),
-                $explicityStrategy
+                $explicityStrategy,
+                $withFakerSupport
             )
         );
 
