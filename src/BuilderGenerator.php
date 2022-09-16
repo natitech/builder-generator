@@ -5,7 +5,6 @@ namespace Nati\BuilderGenerator;
 use Faker\Generator;
 use Nati\BuilderGenerator\Analyzer\BuildableClass;
 use Nati\BuilderGenerator\Property\PropertyBuildStrategyResolver;
-use Nati\BuilderGenerator\Property\StaticBuildMethodPropertyBuildStrategy;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpNamespace;
 use Nette\PhpGenerator\PsrPrinter;
