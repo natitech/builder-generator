@@ -189,11 +189,23 @@ class BuildableClassAnalyzerTest extends UnitTest
                  * @ORM\Column(type="string", name="test", length=255, nullable=true)
                  */
                 public $address;
+                
+                /**
+                 * @ORM\Column
+                 */
+                public $country;
+                
+                #[ORM\Column(type: "string")]
+                public $zip;
+                
+                #[ORM\Column]
+                public $city;
             }'
         );
 
-        $this->assertCount(1, $buildableClass->properties);
-        $this->assertEquals('string', $buildableClass->properties[0]->inferredType);
-        $this->assertEquals('$faker->address', $buildableClass->properties[0]->inferredFake);
+        $this->assertCount(4, $buildableClass->properties);
+        foreach ($buildableClass->properties as $property) {
+            $this->assertEquals('string', $property->inferredType, $property->name . ' not a string');
+        }
     }
 }

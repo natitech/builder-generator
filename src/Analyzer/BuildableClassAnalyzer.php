@@ -181,6 +181,10 @@ final class BuildableClassAnalyzer
             return $type instanceof Node\NullableType ? $type->type->toString() : $type->toString();
         }
 
+        if ($type = $this->getTypeFromAttributes($propertyNode)) {
+            return $type;
+        }
+
         if (($comments = $propertyNode->getComments())
             && ($type = $this->docParser->getType((string)$comments[0]))) {
             return $this->toPhpType($this->cleanNullable($type));
@@ -423,5 +427,37 @@ final class BuildableClassAnalyzer
         }
 
         return $phpDocType;
+    }
+
+    private function getTypeFromAttributes(Property $propertyNode): ?string
+    {
+        if ($ormAttributes = $this->getORMAttribute($propertyNode)) {
+            foreach ($ormAttributes as $ormAttribute) {
+                /** @var ?Node\Attribute $ormAttribute */
+                foreach ($ormAttribute->args as $arg) {
+                    if ((string)$arg->name === 'type') {
+                        return (string)$arg->value->value;
+                    }
+                }
+            }
+
+            return 'string';
+        }
+
+        return null;
+    }
+
+    private function getORMAttribute(Property $propertyNode): array
+    {
+        $attributes = [];
+        foreach ($propertyNode->attrGroups as $group) {
+            foreach ($group->attrs as $attr) {
+                if (in_array('ORM', $attr->name->parts, true)) {
+                    $attributes[] = $attr;
+                }
+            }
+        }
+
+        return $attributes;
     }
 }
